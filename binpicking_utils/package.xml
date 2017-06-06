@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package>
+  <name>binpicking_utils</name>
+  <version>0.1.0</version>
+  <description>Binpicking utils metapackage </description>
+
+  <maintainer email="durovsky987@gmail.com">Frantisek Durovsky</maintainer>
+
+  <author email="frantisek.durovsky@smartroboticsys.eu">Frantisek Durovsky</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>bin_pose_emulator</run_depend>
+  <run_depend>bin_pose_msgs</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

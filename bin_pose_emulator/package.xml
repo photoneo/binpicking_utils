@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package>
+  <name>bin_pose_emulator</name>
+  <version>0.1.0</version>
+  <description>
+    <p>
+      bin_pose_emulator generates random poses of items in the predefined bin.
+    </p>
+  </description>
+
+  <author>Frantisek Durovsky </author>
+  <maintainer email="durovsky@photoneo.com">Frantisek Durovsky</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>bin_pose_msgs</build_depend>
+  <build_depend>yaml-cpp</build_depend>
+  <build_depend>visualization_msgs</build_depend>
+  <build_depend>tf</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>bin_pose_msgs</run_depend>
+  <run_depend>yaml-cpp</run_depend>
+  <run_depend>visualization_msgs</run_depend>
+  <run_depend>tf</run_depend>
+
+</package>
