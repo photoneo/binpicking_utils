@@ -23,3 +23,17 @@ target_link_libraries(
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   yaml-cpp)
+
+# binaries
+install(TARGETS
+  bin_pose_emulator
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+# headers
+install(DIRECTORY include/${PROJECT_NAME}/
+  DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+
+# other files
+install(DIRECTORY launch/
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch})
+
