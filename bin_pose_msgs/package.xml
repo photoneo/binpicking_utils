@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>bin_pose_msgs</name>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <description>The bin_pose_msgs package</description>
 
   <maintainer email="durovsky@photoneo.com">durovsky</maintainer>

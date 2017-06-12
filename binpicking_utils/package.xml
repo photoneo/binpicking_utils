@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>binpicking_utils</name>
-  <version>0.1.1</version>
+  <version>0.1.2</version>
   <description>Binpicking utils metapackage </description>
 
   <maintainer email="durovsky987@gmail.com">Frantisek Durovsky</maintainer>

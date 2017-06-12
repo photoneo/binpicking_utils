@@ -2,8 +2,8 @@
 Changelog for package bin_pose_emulator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.2 (2017-06-12)
+------------------
 * added install targets
 * Update Readme.md
 * Create README.md
