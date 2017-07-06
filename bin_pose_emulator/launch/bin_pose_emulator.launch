@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
 <launch>
   <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/> 
-  <param name="filepath" value="$(find bin_pose_emulator)/config/example_config.yaml"/>
+  <!-- <param name="filepath" value="$(find bin_pose_emulator)/config/example_config.yaml"/> -->
 </launch>
