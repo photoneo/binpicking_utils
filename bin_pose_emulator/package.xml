@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>bin_pose_emulator</name>
-  <version>0.1.2</version>
+  <version>0.1.3</version>
   <description>
     <p>
       bin_pose_emulator generates random poses of items in the predefined bin.

@@ -2,8 +2,8 @@
 Changelog for package bin_pose_emulator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.3 (2017-07-06)
+------------------
 * Disable loading default yaml config
 * adding examle yaml config install
 * typo fix
