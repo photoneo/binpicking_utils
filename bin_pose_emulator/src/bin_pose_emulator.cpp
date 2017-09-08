@@ -84,9 +84,9 @@ bool Emulator::callback(bin_pose_msgs::bin_pose::Request& req,
   deapproach_pose.position.z =
       deapproach_pose.position.z + config.deapproach_height;
 
-  visualize_bin();
-  visualize_pose(grasp_pose, approach_pose);
-  broadcast_pose_tf(grasp_pose);
+  visualizeBin();
+  visualizePose(grasp_pose, approach_pose);
+  broadcastPoseTF(grasp_pose);
 
   res.deapproach_pose = deapproach_pose;
   
@@ -129,7 +129,7 @@ bool Emulator::parseConfig(std::string filepath)
   }
 }
 
-void Emulator::visualize_bin(void)
+void Emulator::visualizeBin(void)
 {
   uint32_t shape = visualization_msgs::Marker::CUBE;
   visualization_msgs::Marker marker;
@@ -159,7 +159,7 @@ void Emulator::visualize_bin(void)
   marker_pub.publish(marker);
 }
 
-void Emulator::visualize_pose(geometry_msgs::Pose grasp_pose,
+void Emulator::visualizePose(geometry_msgs::Pose grasp_pose,
                               geometry_msgs::Pose approach_pose)
 {
   uint32_t shape = visualization_msgs::Marker::ARROW;
@@ -199,7 +199,7 @@ void Emulator::visualize_pose(geometry_msgs::Pose grasp_pose,
   marker_pub.publish(marker);
 }
 
-void Emulator::broadcast_pose_tf(geometry_msgs::Pose grasp_pose)
+void Emulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
 {
   static tf::TransformBroadcaster br;
   tf::Transform transform;
