@@ -4,6 +4,8 @@ Changelog for package bin_pose_msgs
 
 Forthcoming
 -----------
+* adding CHANGELOGS
+* Contributors: Frantisek Durovsky
 
 0.1.3 (2017-07-06)
 ------------------

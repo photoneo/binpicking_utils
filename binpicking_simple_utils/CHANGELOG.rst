@@ -4,6 +4,14 @@ Changelog for package binpicking_simple_utils
 
 Forthcoming
 -----------
+* adding CHANGELOGS
+* adding CHANGELOG
+* minor updates
+* switched to class representation
+* adding basic launch file
+* adding tool_pose_tf_broadcaster
+* Contributors: Frantisek Durovsky
+
 * adding CHANGELOG
 * minor updates
 * switched to class representation

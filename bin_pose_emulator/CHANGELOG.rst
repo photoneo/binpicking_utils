@@ -4,6 +4,10 @@ Changelog for package bin_pose_emulator
 
 Forthcoming
 -----------
+* adding CHANGELOGS
+* syntax fix
+* Contributors: Frantisek Durovsky
+
 * syntax fix
 * Contributors: Frantisek Durovsky
 
