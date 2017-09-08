@@ -2,8 +2,8 @@
 Changelog for package binpicking_simple_utils
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.4 (2017-09-08)
+------------------
 * adding CHANGELOGS
 * adding CHANGELOG
 * minor updates

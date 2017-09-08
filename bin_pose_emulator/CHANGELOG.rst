@@ -2,8 +2,8 @@
 Changelog for package bin_pose_emulator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.4 (2017-09-08)
+------------------
 * adding CHANGELOGS
 * syntax fix
 * Contributors: Frantisek Durovsky
