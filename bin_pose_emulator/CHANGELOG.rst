@@ -2,6 +2,11 @@
 Changelog for package bin_pose_emulator
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* syntax fix
+* Contributors: Frantisek Durovsky
+
 0.1.3 (2017-07-06)
 ------------------
 * Disable loading default yaml config
