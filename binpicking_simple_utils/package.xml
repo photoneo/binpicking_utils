@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package>
+  <name>binpicking_simple_utils</name>
+  <version>0.1.0</version>
+  <description>
+    <p>
+      Various binpicking utils
+    </p>
+  </description>
+
+  <author>Frantisek Durovsky </author>
+  <maintainer email="durovsky@photoneo.com">Frantisek Durovsky</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>tf</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>tf</run_depend>
+
+</package>
+
