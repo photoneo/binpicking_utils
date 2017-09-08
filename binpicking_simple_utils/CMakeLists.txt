@@ -9,8 +9,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package()
 
 include_directories(
-  ${catkin_INCLUDE_DIRS}
-  ${PROJECT_SOURCE_DIR}/include/}
+  ${PROJECT_SOURCE_DIR}/include/
+  ${catkin_INCLUDE_DIRS}  
 )
 
 add_executable(
