@@ -16,39 +16,39 @@ limitations under the License.
 
 #include "bin_pose_emulator/bin_pose_emulator.h"
 
-Emulator::Emulator(ros::NodeHandle* nh, std::string filepath)
+BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)
 {
   parseConfig(filepath); // parse yaml config file
   srandom(time(NULL));   // initialize random generator
 
-  marker_pub =
+  marker_pub_ =
       nh->advertise<visualization_msgs::Marker>("bin_pose_visualization", 1);
 
   ROS_INFO("Bin Pose Emulator Ready!");
 }
 
-Emulator::~Emulator() {}
+BinPoseEmulator::~BinPoseEmulator() {}
 
-bool Emulator::callback(bin_pose_msgs::bin_pose::Request& req,
+bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
                         bin_pose_msgs::bin_pose::Response& res)
 {
 
   //-----------------------------------------------------------------------------------------
   // Generate random Grasp pose
   geometry_msgs::Pose grasp_pose;
-  grasp_pose.position.x = randGen(config.bin_center_x - config.bin_size_x / 2,
-                                  config.bin_center_x + config.bin_size_x / 2);
-  grasp_pose.position.y = randGen(config.bin_center_y - config.bin_size_y / 2,
-                                  config.bin_center_y + config.bin_size_y / 2);
-  grasp_pose.position.z = randGen(config.bin_center_z - config.bin_size_z / 2,
-                                  config.bin_center_z + config.bin_size_z / 2);
+  grasp_pose.position.x = randGen(config_.bin_center_x - config_.bin_size_x / 2,
+                                  config_.bin_center_x + config_.bin_size_x / 2);
+  grasp_pose.position.y = randGen(config_.bin_center_y - config_.bin_size_y / 2,
+                                  config_.bin_center_y + config_.bin_size_y / 2);
+  grasp_pose.position.z = randGen(config_.bin_center_z - config_.bin_size_z / 2,
+                                  config_.bin_center_z + config_.bin_size_z / 2);
 
-  double grasp_roll = randGen(config.roll_default - config.roll_range / 2,
-                              config.roll_default + config.roll_range / 2);
-  double grasp_pitch = randGen(config.pitch_default - config.pitch_range / 2,
-                               config.pitch_default + config.pitch_range / 2);
-  double grasp_yaw = randGen(config.yaw_default - config.yaw_range / 2,
-                             config.yaw_default + config.yaw_range / 2);
+  double grasp_roll = randGen(config_.roll_default - config_.roll_range / 2,
+                              config_.roll_default + config_.roll_range / 2);
+  double grasp_pitch = randGen(config_.pitch_default - config_.pitch_range / 2,
+                               config_.pitch_default + config_.pitch_range / 2);
+  double grasp_yaw = randGen(config_.yaw_default - config_.yaw_range / 2,
+                             config_.yaw_default + config_.yaw_range / 2);
 
   tf::Quaternion grasp_orientation;
   grasp_orientation.setRPY(grasp_roll, grasp_pitch, grasp_yaw);
@@ -67,11 +67,11 @@ bool Emulator::callback(bin_pose_msgs::bin_pose::Request& req,
   tf::Vector3 rotated_vector = tf::quatRotate(grasp_orientation, vector);
 
   approach_pose.position.x =
-      grasp_pose.position.x - config.approach_distance * rotated_vector.getX();
+      grasp_pose.position.x - config_.approach_distance * rotated_vector.getX();
   approach_pose.position.y =
-      grasp_pose.position.y - config.approach_distance * rotated_vector.getY();
+      grasp_pose.position.y - config_.approach_distance * rotated_vector.getY();
   approach_pose.position.z =
-      grasp_pose.position.z - config.approach_distance * rotated_vector.getZ();
+      grasp_pose.position.z - config_.approach_distance * rotated_vector.getZ();
 
   approach_pose.orientation = grasp_pose.orientation;
   res.approach_pose = approach_pose;
@@ -82,7 +82,7 @@ bool Emulator::callback(bin_pose_msgs::bin_pose::Request& req,
 
   deapproach_pose = grasp_pose;
   deapproach_pose.position.z =
-      deapproach_pose.position.z + config.deapproach_height;
+      deapproach_pose.position.z + config_.deapproach_height;
 
   visualizeBin();
   visualizePose(grasp_pose, approach_pose);
@@ -93,35 +93,35 @@ bool Emulator::callback(bin_pose_msgs::bin_pose::Request& req,
   return true;
 }
 
-double Emulator::randGen(double fMin, double fMax)
+double BinPoseEmulator::randGen(double fMin, double fMax)
 {
   double f = (double)rand() / RAND_MAX;
   return fMin + f * (fMax - fMin);
 }
 
-bool Emulator::parseConfig(std::string filepath)
+bool BinPoseEmulator::parseConfig(std::string filepath)
 {
   try
   {
     YAML::Node config_file = YAML::LoadFile(filepath);
-    config.bin_center_x = config_file["bin_center_x"].as<float>();
-    config.bin_center_y = config_file["bin_center_y"].as<float>();
-    config.bin_center_z = config_file["bin_center_z"].as<float>();
+    config_.bin_center_x = config_file["bin_center_x"].as<float>();
+    config_.bin_center_y = config_file["bin_center_y"].as<float>();
+    config_.bin_center_z = config_file["bin_center_z"].as<float>();
 
-    config.bin_size_x = config_file["bin_size_x"].as<float>();
-    config.bin_size_y = config_file["bin_size_y"].as<float>();
-    config.bin_size_z = config_file["bin_size_z"].as<float>();
+    config_.bin_size_x = config_file["bin_size_x"].as<float>();
+    config_.bin_size_y = config_file["bin_size_y"].as<float>();
+    config_.bin_size_z = config_file["bin_size_z"].as<float>();
 
-    config.roll_default = config_file["roll_default"].as<float>();
-    config.pitch_default = config_file["pitch_default"].as<float>();
-    config.yaw_default = config_file["yaw_default"].as<float>();
+    config_.roll_default = config_file["roll_default"].as<float>();
+    config_.pitch_default = config_file["pitch_default"].as<float>();
+    config_.yaw_default = config_file["yaw_default"].as<float>();
 
-    config.roll_range = config_file["roll_range"].as<float>();
-    config.pitch_range = config_file["pitch_range"].as<float>();
-    config.yaw_range = config_file["yaw_range"].as<float>();
+    config_.roll_range = config_file["roll_range"].as<float>();
+    config_.pitch_range = config_file["pitch_range"].as<float>();
+    config_.yaw_range = config_file["yaw_range"].as<float>();
 
-    config.approach_distance = config_file["approach_distance"].as<float>();
-    config.deapproach_height = config_file["deapproach_height"].as<float>();
+    config_.approach_distance = config_file["approach_distance"].as<float>();
+    config_.deapproach_height = config_file["deapproach_height"].as<float>();
   }
   catch (YAML::ParserException& e)
   {
@@ -129,7 +129,7 @@ bool Emulator::parseConfig(std::string filepath)
   }
 }
 
-void Emulator::visualizeBin(void)
+void BinPoseEmulator::visualizeBin(void)
 {
   uint32_t shape = visualization_msgs::Marker::CUBE;
   visualization_msgs::Marker marker;
@@ -142,13 +142,13 @@ void Emulator::visualizeBin(void)
   marker.type = shape;
   marker.action = visualization_msgs::Marker::ADD;
 
-  marker.pose.position.x = config.bin_center_x;
-  marker.pose.position.y = config.bin_center_y;
-  marker.pose.position.z = config.bin_center_z;
+  marker.pose.position.x = config_.bin_center_x;
+  marker.pose.position.y = config_.bin_center_y;
+  marker.pose.position.z = config_.bin_center_z;
 
-  marker.scale.x = config.bin_size_x;
-  marker.scale.y = config.bin_size_y;
-  marker.scale.z = config.bin_size_z;
+  marker.scale.x = config_.bin_size_x;
+  marker.scale.y = config_.bin_size_y;
+  marker.scale.z = config_.bin_size_z;
 
   marker.color.r = 0.8f;
   marker.color.g = 0.0f;
@@ -156,10 +156,10 @@ void Emulator::visualizeBin(void)
   marker.color.a = 0.5;
 
   marker.lifetime = ros::Duration();
-  marker_pub.publish(marker);
+  marker_pub_.publish(marker);
 }
 
-void Emulator::visualizePose(geometry_msgs::Pose grasp_pose,
+void BinPoseEmulator::visualizePose(geometry_msgs::Pose grasp_pose,
                               geometry_msgs::Pose approach_pose)
 {
   uint32_t shape = visualization_msgs::Marker::ARROW;
@@ -196,10 +196,10 @@ void Emulator::visualizePose(geometry_msgs::Pose grasp_pose,
   marker.color.a = 1.0;
 
   marker.lifetime = ros::Duration();
-  marker_pub.publish(marker);
+  marker_pub_.publish(marker);
 }
 
-void Emulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
+void BinPoseEmulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
 {
   static tf::TransformBroadcaster br;
   tf::Transform transform;
@@ -223,11 +223,11 @@ int main(int argc, char* argv[])
   nh.getParam("filepath", filepath);
 
   // Create emulator object
-  Emulator emulator(&nh, filepath);
+  BinPoseEmulator emulator(&nh, filepath);
 
   // Advertise service
   ros::ServiceServer service =
-      nh.advertiseService("bin_pose", &Emulator::callback, &emulator);
+      nh.advertiseService("bin_pose", &BinPoseEmulator::callback, &emulator);
 
   ros::spin();
 

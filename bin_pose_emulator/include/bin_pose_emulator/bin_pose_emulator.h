@@ -52,11 +52,11 @@ struct ConfigData
   double deapproach_height;
 };
 
-class Emulator
+class BinPoseEmulator
 {
 public:
-  Emulator(ros::NodeHandle* nh, std::string filepath);
-  ~Emulator();
+  BinPoseEmulator(ros::NodeHandle* nh, std::string filepath);
+  ~BinPoseEmulator();
 
   bool callback(bin_pose_msgs::bin_pose::Request& req,
                 bin_pose_msgs::bin_pose::Response& res);
@@ -70,9 +70,9 @@ private:
                       geometry_msgs::Pose approach_pose);
   void broadcastPoseTF(geometry_msgs::Pose grasp_pose);
 
-  ros::Publisher marker_pub;
+  ros::Publisher marker_pub_;
 
-  ConfigData config;
+  ConfigData config_;
 };
 
 #endif // BIN_POSE_EMULATOR_H
