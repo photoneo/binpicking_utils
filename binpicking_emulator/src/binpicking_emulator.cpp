@@ -45,6 +45,25 @@ BinpickingEmulator::~BinpickingEmulator()
 bool BinpickingEmulator::bin_picking_init_callback(photoneo_msg::initializePose::Request& req, photoneo_msg::initializePose::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Binpicking Init Service called");
+
+  ROS_INFO("START POSE: [%f, %f, %f, %f, %f, %f]",
+      req.startPose.position[0],
+      req.startPose.position[1],
+      req.startPose.position[2],
+      req.startPose.position[3],
+      req.startPose.position[4],
+      req.startPose.position[5]);
+
+  ROS_INFO("END POSE: [%f, %f, %f, %f, %f, %f]",
+      req.endPose.position[0],
+      req.endPose.position[1],
+      req.endPose.position[2],
+      req.endPose.position[3],
+      req.endPose.position[4],
+      req.endPose.position[5]);
+
+  res.success = true;
+  res.result = 0;
   return true;
 }
 
@@ -263,24 +282,28 @@ bool BinpickingEmulator::bin_picking_traj_callback(photoneo_msg::operations::Req
 bool BinpickingEmulator::bin_picking_scan_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Binpicking Scan Service called");
+  res.success = true;
   return true;
 }
 
 bool BinpickingEmulator::calibration_scan_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Calibration Scan Service called");
+  res.success = true;
   return true;
 }
 
 bool BinpickingEmulator::calibration_compute_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Calibration Compute Service called");
+  res.success = true;
   return true;
 }
 
 bool BinpickingEmulator::calibration_reset_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Calibration Compute Service called");
+  res.success = true;
   return true;
 }
 
