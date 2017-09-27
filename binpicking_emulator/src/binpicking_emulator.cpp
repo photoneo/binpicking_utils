@@ -67,14 +67,23 @@ bool BinpickingEmulator::bin_picking_init_callback(photoneo_msg::initializePose:
   return true;
 }
 
-bool BinpickingEmulator::bin_picking_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res)
+bool BinpickingEmulator::bin_picking_scan_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
-  ROS_INFO("Binpicking Emulator: Binpicking Service called");
+  ROS_INFO("Binpicking Emulator: Binpicking Scan Service called");
+  res.success = true;
   return true;
 }
 
 bool BinpickingEmulator::bin_picking_traj_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res)
 {
+  ROS_INFO("Binpicking Emulator: Binpicking Trajectory Service called");
+  return true;
+}
+
+bool BinpickingEmulator::bin_picking_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res)
+{
+  ROS_INFO("Binpicking Emulator: Binpicking Service called");
+
   // Get current state
   robot_state::RobotState current_state(*group_->getCurrentState());
 
@@ -90,7 +99,7 @@ bool BinpickingEmulator::bin_picking_traj_callback(photoneo_msg::operations::Req
   group_->setStartState(current_state);
 
   // Get random bin picking pose from emulator
-  bin_pose_msgs::bin_pose srv;  
+  bin_pose_msgs::bin_pose srv;
   geometry_msgs::Pose approach_pose, grasp_pose, deapproach_pose;
 
   if(bin_pose_client_.call(srv))
@@ -277,13 +286,6 @@ bool BinpickingEmulator::bin_picking_traj_callback(photoneo_msg::operations::Req
     ROS_WARN("Planning failed, repeat the request");
     return false;
   }
-}
-
-bool BinpickingEmulator::bin_picking_scan_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
-{
-  ROS_INFO("Binpicking Emulator: Binpicking Scan Service called");
-  res.success = true;
-  return true;
 }
 
 bool BinpickingEmulator::calibration_scan_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
