@@ -34,8 +34,8 @@ void Broadcaster::poseCallback(const geometry_msgs::PoseConstPtr& msg){
                         + pow(msg->orientation.z, 2) 
                         + pow(msg->orientation.w, 2);
   
-  if (abs(1 -quaternion_sum) < 0.01)
-  {
+  //if (abs(1 -quaternion_sum) < 0.01)
+  //{
     // Tool Pose transform
     origin.setX(msg->position.x);
     origin.setY(msg->position.y);
@@ -49,8 +49,8 @@ void Broadcaster::poseCallback(const geometry_msgs::PoseConstPtr& msg){
     transform.setOrigin(origin);    
     transform.setRotation(orientation);
         
-    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "real_robot_tool_pose"));
-  }
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "photoneo_tool_pose"));
+  //}
 }
 
 
@@ -60,7 +60,7 @@ int main(int argc, char** argv){
   
   Broadcaster broadcaster;
   
-  ros::Subscriber sub = nh.subscribe("real_robot_tool_pose", 1, &Broadcaster::poseCallback, &broadcaster);
+  ros::Subscriber sub = nh.subscribe("photoneo_tool_pose", 1, &Broadcaster::poseCallback, &broadcaster);
 
   ROS_INFO("Tool Pose TF Broadcater running!");
   ros::spin();
