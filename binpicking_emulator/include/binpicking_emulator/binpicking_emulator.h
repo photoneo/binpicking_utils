@@ -122,6 +122,9 @@ private:
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
   moveit::planning_interface::MoveGroupInterfacePtr group_;
 
+  std::vector<double> start_pose_from_robot;
+  std::vector<double> end_pose_from_robot;
+
   int trajectory_marker_index_;
 
   // Functions

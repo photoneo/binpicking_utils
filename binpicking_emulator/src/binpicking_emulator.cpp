@@ -62,6 +62,22 @@ bool BinpickingEmulator::bin_picking_init_callback(photoneo_msg::initializePose:
       req.endPose.position[4],
       req.endPose.position[5]);
 
+  // Save Start Pose from Robot
+  start_pose_from_robot.push_back(req.startPose.position[0]);
+  start_pose_from_robot.push_back(req.startPose.position[1]);
+  start_pose_from_robot.push_back(req.startPose.position[2]);
+  start_pose_from_robot.push_back(req.startPose.position[3]);
+  start_pose_from_robot.push_back(req.startPose.position[4]);
+  start_pose_from_robot.push_back(req.startPose.position[5]);
+
+  // Save End Pose from Robot
+  end_pose_from_robot.push_back(req.endPose.position[0]);
+  end_pose_from_robot.push_back(req.endPose.position[1]);
+  end_pose_from_robot.push_back(req.endPose.position[2]);
+  end_pose_from_robot.push_back(req.endPose.position[3]);
+  end_pose_from_robot.push_back(req.endPose.position[4]);
+  end_pose_from_robot.push_back(req.endPose.position[5]);
+
   res.success = true;
   res.result = 0;
   return true;
@@ -100,7 +116,7 @@ bool BinpickingEmulator::bin_picking_callback(photoneo_msg::operations::Request&
     //---------------------------------------------------
     // Set Start state
     //---------------------------------------------------
-    group_->setNamedTarget("start_pose");
+    group_->setJointValueTarget(start_pose_from_robot);
     group_->plan(to_start_pose);
     start_traj_size = to_start_pose.trajectory_.joint_trajectory.points.size();
     current_state.setJointGroupPositions("manipulator", to_start_pose.trajectory_.joint_trajectory.points[start_traj_size-1].positions);
@@ -174,7 +190,7 @@ bool BinpickingEmulator::bin_picking_callback(photoneo_msg::operations::Request&
     //---------------------------------------------------
     // Plan trajectory from deapproach to end pose
     //---------------------------------------------------
-    group_->setNamedTarget("end_pose");
+    group_->setJointValueTarget(end_pose_from_robot);
     bool success_end = group_->plan(to_end_pose);
     if(success_end)
     {
