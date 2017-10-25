@@ -6,7 +6,8 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED
   COMPONENTS
     roscpp
-    photoneo_msg
+    photoneo_msgs
+    pho_robot_loader
     bin_pose_msgs
     moveit_core
     moveit_ros_planning_interface
@@ -14,7 +15,7 @@ find_package(catkin REQUIRED
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp bin_pose_msgs photoneo_msg moveit_core)
+  CATKIN_DEPENDS roscpp bin_pose_msgs photoneo_msgs pho_robot_loader moveit_core)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
