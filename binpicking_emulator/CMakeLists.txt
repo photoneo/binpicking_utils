@@ -8,6 +8,7 @@ find_package(catkin REQUIRED
     roscpp
     photoneo_msgs
     pho_robot_loader
+    pho_diagnostics
     bin_pose_msgs
     moveit_core
     moveit_ros_planning_interface
