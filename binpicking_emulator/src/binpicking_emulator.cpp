@@ -28,7 +28,7 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
 
   // Load num of joints
   bool num_of_joints_success = nh->getParam("photoneo_module/num_of_joints", num_of_joints_);
-  if (num_of_joints_success)
+  if (!num_of_joints_success)
   {
     ROS_WARN("Not able to load ""num_of_joints"" from param server, using default value 6");
     num_of_joints_ = 6;
