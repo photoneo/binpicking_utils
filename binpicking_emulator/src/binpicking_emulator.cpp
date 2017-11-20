@@ -26,6 +26,18 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
   // Load robot description
   robot_model_loader_.reset(new robot_model_loader::RobotModelLoader("robot_description"));
 
+  // Load num of joints
+  bool num_of_joints_success = nh->getParam("photoneo_module/num_of_joints", num_of_joints_);
+  if (num_of_joints_success)
+  {
+    ROS_WARN("Not able to load ""num_of_joints"" from param server, using default value 6");
+    num_of_joints_ = 6;
+  }
+
+  // Resize start and end pose arrays
+  start_pose_from_robot_.resize(num_of_joints_);
+  end_pose_from_robot_.resize(num_of_joints_);
+
   // Configure bin pose client
   bin_pose_client_ = nh->serviceClient<bin_pose_msgs::bin_pose>("bin_pose");
 
@@ -46,30 +58,19 @@ bool BinpickingEmulator::binPickingInitCallback(photoneo_msgs::initialize_pose::
 {
   ROS_INFO("BP EMULATOR: Binpicking Init Service called");
 
-  ROS_INFO("BP EMULATOR: START POSE: [%f, %f, %f, %f, %f, %f, %f]", req.startPose.position[0], req.startPose.position[1],
-           req.startPose.position[2], req.startPose.position[3], req.startPose.position[4], req.startPose.position[5], req.startPose.position[6]);
+  std::stringstream start_pose_string, end_pose_string;
 
-  ROS_INFO("BP EMULATOR: END POSE: [%f, %f, %f, %f, %f, %f, %f]", req.endPose.position[0], req.endPose.position[1],
-           req.endPose.position[2], req.endPose.position[3], req.endPose.position[4], req.endPose.position[5], req.endPose.position[6]);
+  for(int i = 0; i < num_of_joints_; i++)
+  {
+    start_pose_from_robot_[i] = req.startPose.position[i];
+    end_pose_from_robot_[i] = req.endPose.position[i];
 
-  // Save Start Pose from Robot
-  start_pose_from_robot_.push_back(req.startPose.position[0]);
-  start_pose_from_robot_.push_back(req.startPose.position[1]);
-  start_pose_from_robot_.push_back(req.startPose.position[2]);
-  start_pose_from_robot_.push_back(req.startPose.position[3]);
-  start_pose_from_robot_.push_back(req.startPose.position[4]);
-  start_pose_from_robot_.push_back(req.startPose.position[5]);
-  start_pose_from_robot_.push_back(req.startPose.position[6]);
+    start_pose_string << req.startPose.position[i] << " ";
+    end_pose_string << req.endPose.position[i] << " ";
+  }
 
-  // Save End Pose from Robot
-  end_pose_from_robot_.push_back(req.endPose.position[0]);
-  end_pose_from_robot_.push_back(req.endPose.position[1]);
-  end_pose_from_robot_.push_back(req.endPose.position[2]);
-  end_pose_from_robot_.push_back(req.endPose.position[3]);
-  end_pose_from_robot_.push_back(req.endPose.position[4]);
-  end_pose_from_robot_.push_back(req.endPose.position[5]);
-  end_pose_from_robot_.push_back(req.endPose.position[6]);
-
+  ROS_INFO("BP EMULATOR: START POSE: [%s] ", start_pose_string.str().c_str());
+  ROS_INFO("BP EMULATOR: END POSE: [%s]", end_pose_string.str().c_str());
 
   res.success = true;
   res.result = 0;
@@ -547,8 +548,26 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "binpicking_emulator");
   ros::NodeHandle nh;
 
-  // Wait until moveit config is properly loaded
-  ros::service::waitForService ("/move_group/get_loggers", -1);
+  // Initial wait for Moveit to be properly loaded
+  ros::Duration(3).sleep();
+
+  // Wait for moveit services
+  bool moveit_available = ros::service::exists("/compute_ik", true);
+  while (!moveit_available)
+  {
+     ros::Duration(1).sleep();
+     ROS_WARN("BP EMULATOR: Waiting for Moveit Config to be properly loaded!");
+     moveit_available = ros::service::exists("/compute_ik", true);
+  }
+
+  // Wait for bin_pose service
+  bool bin_pose_emulator_available = ros::service::exists("/bin_pose", true);
+  while (!bin_pose_emulator_available)
+  {
+    ros::Duration(1).sleep();
+    bin_pose_emulator_available = ros::service::exists("/bin_pose", true);
+    ROS_WARN("BP EMULATOR: Waiting for Bin pose emulator to provide /bin_pose service ");
+  }
 
   // Create BinpickingEmulator instance
   BinpickingEmulator emulator(&nh);
@@ -569,7 +588,7 @@ int main(int argc, char** argv)
   ros::ServiceServer calibration_reset_service =
       nh.advertiseService(CALIBRATION_SERVICES::RESET, &BinpickingEmulator::calibrationResetCallback, &emulator);
 
-  ROS_INFO("BP EMULATOR: Ready");
+  ROS_WARN("BP EMULATOR: Ready");
 
   // Start Async Spinner with 2 threads
   ros::AsyncSpinner spinner(2);

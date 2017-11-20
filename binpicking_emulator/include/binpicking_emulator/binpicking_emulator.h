@@ -59,6 +59,7 @@ private:
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
   moveit::planning_interface::MoveGroupInterfacePtr group_;
 
+  int num_of_joints_;
   std::vector<double> start_pose_from_robot_;
   std::vector<double> end_pose_from_robot_;
 
