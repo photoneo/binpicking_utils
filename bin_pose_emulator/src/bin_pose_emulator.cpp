@@ -24,7 +24,7 @@ BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)
   marker_pub_ =
       nh->advertise<visualization_msgs::Marker>("bin_pose_visualization", 1);
 
-  ROS_INFO("Bin Pose Emulator Ready!");
+  ROS_INFO("BIN POSE EMULATOR: Ready!");
 }
 
 BinPoseEmulator::~BinPoseEmulator() {}
@@ -125,7 +125,7 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
   }
   catch (YAML::ParserException& e)
   {
-    ROS_ERROR("Error reading yaml config file");
+    ROS_ERROR("BIN POSE EMULATOR: Error reading yaml config file");
   }
 }
 
@@ -209,6 +209,7 @@ void BinPoseEmulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
   transform.setRotation(
       tf::Quaternion(grasp_pose.orientation.x, grasp_pose.orientation.y,
                      grasp_pose.orientation.z, grasp_pose.orientation.w));
+
   br.sendTransform(tf::StampedTransform(transform, ros::Time::now(),
                                         "base_link", "current_goal"));
 }
