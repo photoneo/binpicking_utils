@@ -206,7 +206,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_CNT_TYPE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
@@ -250,7 +250,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 5 - Deapproach trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_CNT_TYPE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
@@ -263,7 +263,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 6 - End Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_CNT_TYPE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < end_traj_size; i++)
