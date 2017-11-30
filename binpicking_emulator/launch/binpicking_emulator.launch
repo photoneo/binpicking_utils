@@ -1,0 +1,11 @@
+<launch>
+  <!-- Bin pose emulator -->
+  <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/>
+
+  <!-- Bin picking emulator -->
+  <node pkg="binpicking_emulator" name="binpicking_emulator" type="binpicking_emulator" output="screen"/>
+
+  <!-- Collision Object Publisher -->
+  <!-- node pkg="binpicking_simple_utils" name="collision_object_publisher" type="collision_object_publisher" output="screen"/-->
+
+</launch>

@@ -24,7 +24,7 @@ BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)
   marker_pub_ =
       nh->advertise<visualization_msgs::Marker>("bin_pose_visualization", 1);
 
-  ROS_INFO("BIN POSE EMULATOR: Ready!");
+  ROS_INFO("Bin pose emulator: Ready!");
 }
 
 BinPoseEmulator::~BinPoseEmulator() {}
@@ -125,7 +125,7 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
   }
   catch (YAML::ParserException& e)
   {
-    ROS_ERROR("BIN POSE EMULATOR: Error reading yaml config file");
+    ROS_ERROR("Bin pose emulator: Error reading yaml config file");
   }
 }
 
