@@ -206,7 +206,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
@@ -219,7 +219,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 2 - Open Gripper
-    binpicking_operation.operation_type = OPERATION_TYPE::GRIPPER_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
     binpicking_operation.points.clear();
     binpicking_operation.gripper = GRIPPER::OPEN;
     binpicking_operation.error = 0;
@@ -228,7 +228,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 3 - Grasp Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < grasp_traj_size; i++)
@@ -241,7 +241,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 4 - Close Gripper
-    binpicking_operation.operation_type = OPERATION_TYPE::GRIPPER_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
     binpicking_operation.points.clear();
     binpicking_operation.gripper = GRIPPER::CLOSE;
     binpicking_operation.error = 0;
@@ -250,7 +250,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 5 - Deapproach trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
@@ -263,7 +263,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 6 - End Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < end_traj_size; i++)
@@ -404,7 +404,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_CNT_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
@@ -417,7 +417,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     res.operations.push_back(binpicking_operation);
 
     // Operation 2 - Open Gripper
-    binpicking_operation.operation_type = OPERATION_TYPE::GRIPPER_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
     binpicking_operation.points.clear();
     binpicking_operation.gripper = GRIPPER::OPEN;
     binpicking_operation.error = 0;
@@ -426,7 +426,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     res.operations.push_back(binpicking_operation);
 
     // Operation 3 - Grasp Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_FINE_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < grasp_traj_size; i++)
@@ -439,7 +439,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     res.operations.push_back(binpicking_operation);
 
     // Operation 4 - Close Gripper
-    binpicking_operation.operation_type = OPERATION_TYPE::GRIPPER_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
     binpicking_operation.points.clear();
     binpicking_operation.gripper = GRIPPER::CLOSE;
     binpicking_operation.error = 0;
@@ -448,7 +448,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     res.operations.push_back(binpicking_operation);
 
     // Operation 5 - Deapproach trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_CNT_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
@@ -461,7 +461,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     res.operations.push_back(binpicking_operation);
 
     // Operation 6 - End Trajectory
-    binpicking_operation.operation_type = OPERATION_TYPE::TRAJECTORY_CNT_TYPE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < end_traj_size; i++)
@@ -485,7 +485,7 @@ bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::calibration:
 {
   ROS_INFO("Binpicking emulator: Calibration Add Point Service called");
   res.calibration_state = 0;
-  res.reprojection_error = 0.12345;
+  res.reprojection_error = 12.345;
   return true;
 }
 
