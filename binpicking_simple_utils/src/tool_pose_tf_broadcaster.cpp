@@ -34,8 +34,8 @@ void Broadcaster::poseCallback(const geometry_msgs::PoseConstPtr& msg){
                         + pow(msg->orientation.z, 2) 
                         + pow(msg->orientation.w, 2);
   
-  //if (abs(1 -quaternion_sum) < 0.01)
-  //{
+  if (abs(1 -quaternion_sum) < 0.01)
+  {
     // Tool Pose transform
     origin.setX(msg->position.x);
     origin.setY(msg->position.y);
@@ -50,9 +50,10 @@ void Broadcaster::poseCallback(const geometry_msgs::PoseConstPtr& msg){
     transform.setRotation(orientation);
         
     br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "base_link", "photoneo_tool_pose"));
-  //}
+  }
+  else
+    ROS_WARN("Tool Pose Quaternion not valid!");
 }
-
 
 int main(int argc, char** argv){
   ros::init(argc, argv, "tool_pose_tf_broadcaster");
