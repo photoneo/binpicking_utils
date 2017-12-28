@@ -24,7 +24,7 @@ BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)
   marker_pub_ =
       nh->advertise<visualization_msgs::Marker>("bin_pose_visualization", 1);
 
-  ROS_INFO("Bin pose emulator: Ready!");
+  ROS_WARN("BIN POSE EMULATOR: Ready!");
 }
 
 BinPoseEmulator::~BinPoseEmulator() {}
