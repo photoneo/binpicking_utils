@@ -27,6 +27,9 @@ limitations under the License.
 
 struct ConfigData
 {
+  // Label
+  std::string label;
+
   // Virtual Bin center
   double bin_center_x;
   double bin_center_y;
@@ -61,18 +64,25 @@ public:
   bool callback(bin_pose_msgs::bin_pose::Request& req,
                 bin_pose_msgs::bin_pose::Response& res);
 
+  bool callback_left(bin_pose_msgs::bin_pose::Request& req,
+                     bin_pose_msgs::bin_pose::Response& res);
+
+  bool callback_right(bin_pose_msgs::bin_pose::Request& req,
+                      bin_pose_msgs::bin_pose::Response& res);
+
 private:
   double randGen(double fMin, double fMax);
   bool parseConfig(std::string filepath);
 
-  void visualizeBin(void);
-  void visualizePose(geometry_msgs::Pose grasp_pose,
-                      geometry_msgs::Pose approach_pose);
+  void visualizeBin(ConfigData config_data);
+  void visualizePose(ConfigData config_data, geometry_msgs::Pose grasp_pose, geometry_msgs::Pose approach_pose);
   void broadcastPoseTF(geometry_msgs::Pose grasp_pose);
 
   ros::Publisher marker_pub_;
 
   ConfigData config_;
+  ConfigData config_left_;
+  ConfigData config_right_;
 };
 
 #endif // BIN_POSE_EMULATOR_H
