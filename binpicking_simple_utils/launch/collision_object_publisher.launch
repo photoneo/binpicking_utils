@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
 <launch>
-  <param name="collision_objects_list_filepath" value="$(find binpicking_simple_utils)/collision_objects/config/list_of_collision_objects.yaml"/>
+  <param name="collision_objects_list_filepath" value="$(find binpicking_simple_utils)/collision_objects/config/yumi_workplace.yaml"/>
   <node pkg="binpicking_simple_utils" name="collision_object_publisher" type="collision_object_publisher" output="screen"/>
 </launch>

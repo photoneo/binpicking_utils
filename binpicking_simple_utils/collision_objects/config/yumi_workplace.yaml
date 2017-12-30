@@ -1,0 +1,13 @@
+- label: table
+  model_filepath: "package://binpicking_simple_utils/collision_objects/meshes/box.stl"
+  x_position: 0.5
+  y_position: 0
+  z_position: 0
+  roll: 0
+  pitch: 0
+  yaw: 0
+  x_scale: 10
+  y_scale: 15
+  z_scale: 0.05
+
+
