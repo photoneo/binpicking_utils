@@ -45,28 +45,36 @@ public:
 
   bool binPickingScanCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool binPickingTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
+  bool binPickingTrajArmLeftCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
+  bool binPickingTrajArmRightCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingScanAndTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
+  bool binPickingInitArmLeftCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
+  bool binPickingInitArmRightCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
   bool calibrationAddPointCallback(photoneo_msgs::calibration::Request& req, photoneo_msgs::calibration::Response& res);
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
 
 private:
   // Variables
-  ros::Publisher trajectory_pub_;
   ros::ServiceClient bin_pose_client_;
+  ros::ServiceClient bin_pose_arm_left_client_;
+  ros::ServiceClient bin_pose_arm_right_client_;
 
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
-  moveit::planning_interface::MoveGroupInterfacePtr group_;
+  moveit::planning_interface::MoveGroupInterfacePtr group_manipulator_;
+  moveit::planning_interface::MoveGroupInterfacePtr group_arm_left_;
+  moveit::planning_interface::MoveGroupInterfacePtr group_arm_right_;
 
   int num_of_joints_;
   std::vector<double> start_pose_from_robot_;
   std::vector<double> end_pose_from_robot_;
+  std::vector<double> arm_left_start_pose_from_robot_;
+  std::vector<double> arm_left_end_pose_from_robot_;
+  std::vector<double> arm_right_start_pose_from_robot_;
+  std::vector<double> arm_right_end_pose_from_robot_;
 
   int trajectory_marker_index_;
-
-  // Functions
-  void visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory);
 
 };  // class
 
