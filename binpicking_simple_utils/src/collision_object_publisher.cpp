@@ -51,7 +51,7 @@ CollisionObjectPublisher::CollisionObjectPublisher(ros::NodeHandle *nh, std::str
 
   // Initialize ros::Publisher
   pub = nh->advertise<moveit_msgs::CollisionObject>("collision_object", 1);
-  ros::Duration(1).sleep();
+  
 }
 
 
@@ -127,6 +127,9 @@ int main(int argc, char** argv)
   nh.getParam("collision_objects_list_filepath", collision_objects_list_filepath);
 
   CollisionObjectPublisher collision_object_publisher(&nh, collision_objects_list_filepath);
+  
+  ros::Duration(5).sleep();
+    
   collision_object_publisher.publishAllCollisionObjects();
 
   ros::shutdown();
