@@ -24,9 +24,9 @@ limitations under the License.
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_broadcaster.h>
 #include <bin_pose_msgs/bin_pose.h>
-#include <photoneo_msg/operations.h>
-#include <photoneo_msg/operation.h>
-#include <photoneo_msg/initializePose.h>
+#include <photoneo_msgs/operations.h>
+#include <photoneo_msgs/operation.h>
+#include <photoneo_msgs/initializePose.h>
 
 // MoveIt!
 #include <moveit/robot_state/robot_state.h>
@@ -104,13 +104,13 @@ public:
   BinpickingEmulator(ros::NodeHandle *nh);
   ~BinpickingEmulator();
 
-  bool bin_picking_init_callback(photoneo_msg::initializePose::Request& req, photoneo_msg::initializePose::Response& res);
-  bool bin_picking_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res);
-  bool bin_picking_traj_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res);
+  bool bin_picking_init_callback(photoneo_msgs::initializePose::Request& req, photoneo_msgs::initializePose::Response& res);
+  bool bin_picking_callback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
+  bool bin_picking_traj_callback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool bin_picking_scan_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibration_scan_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibration_compute_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
-  bool auto_calibration_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res);
+  bool auto_calibration_callback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool calibration_reset_callback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
 
 private:

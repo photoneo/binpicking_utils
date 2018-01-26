@@ -42,7 +42,7 @@ BinpickingEmulator::~BinpickingEmulator()
 
 }
 
-bool BinpickingEmulator::bin_picking_init_callback(photoneo_msg::initializePose::Request& req, photoneo_msg::initializePose::Response& res)
+bool BinpickingEmulator::bin_picking_init_callback(photoneo_msgs::initializePose::Request& req, photoneo_msgs::initializePose::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Binpicking Init Service called");
 
@@ -90,13 +90,13 @@ bool BinpickingEmulator::bin_picking_scan_callback(std_srvs::Trigger::Request& r
   return true;
 }
 
-bool BinpickingEmulator::bin_picking_traj_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res)
+bool BinpickingEmulator::bin_picking_traj_callback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Binpicking Trajectory Service called");
   return true;
 }
 
-bool BinpickingEmulator::bin_picking_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res)
+bool BinpickingEmulator::bin_picking_callback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Binpicking Service called");
 
@@ -214,7 +214,7 @@ bool BinpickingEmulator::bin_picking_callback(photoneo_msg::operations::Request&
   // Compose binpicking as a sequence of operations
   //---------------------------------------------------
 
-  photoneo_msg::operation binpicking_operation;
+  photoneo_msgs::operation binpicking_operation;
 
   // Operation 1 - Approach Trajectory
   binpicking_operation.msgType = OPERATION_TYPE::TRAJECTORY_TYPE;
@@ -323,7 +323,7 @@ bool BinpickingEmulator::calibration_reset_callback(std_srvs::Trigger::Request& 
 }
 
 
-bool BinpickingEmulator::auto_calibration_callback(photoneo_msg::operations::Request& req, photoneo_msg::operations::Response& res)
+bool BinpickingEmulator::auto_calibration_callback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res)
 {
   ROS_INFO("Binpicking Emulator: Auto Calibration Service called");
   return true;
