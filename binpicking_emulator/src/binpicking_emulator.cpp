@@ -481,11 +481,12 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
   }
 }
 
-bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::calibration::Request& req, photoneo_msgs::calibration::Response& res)
+bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Add Point Service called");
   res.calibration_state = 0;
-  res.reprojection_error = 12.345;
+  res.average_reprojection_error = 12.345;
+  res.calibration_state = 98.765;
   return true;
 }
 

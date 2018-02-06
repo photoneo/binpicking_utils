@@ -27,7 +27,7 @@ limitations under the License.
 #include <photoneo_msgs/operations.h>
 #include <photoneo_msgs/operation.h>
 #include <photoneo_msgs/initialize_pose.h>
-#include <photoneo_msgs/calibration.h>
+#include <photoneo_msgs/add_point.h>
 #include <pho_robot_loader/constants.h>
 
 // MoveIt!
@@ -47,7 +47,7 @@ public:
   bool binPickingTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingScanAndTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
-  bool calibrationAddPointCallback(photoneo_msgs::calibration::Request& req, photoneo_msgs::calibration::Response& res);
+  bool calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res);
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
 
