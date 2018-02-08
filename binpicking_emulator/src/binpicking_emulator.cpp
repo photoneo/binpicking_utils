@@ -80,6 +80,7 @@ bool BinpickingEmulator::binPickingInitCallback(photoneo_msgs::initialize_pose::
 bool BinpickingEmulator::binPickingScanCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Binpicking Scan Service called");
+  ros::Duration(5).sleep();
   res.success = true;
   return true;
 }
@@ -484,15 +485,24 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
 bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Add Point Service called");
-  res.calibration_state = 0;
+
+  ros::Duration(5).sleep();  // Simulating delay
+
   res.average_reprojection_error = 12.345;
-  res.calibration_state = 98.765;
+  res.calibration_state = 0;
+  res.too_close_indices = {0,0,0,0};
+  res.message = "OK";
+  res.success = true;
+
   return true;
 }
 
 bool BinpickingEmulator::calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Set To Scanner Service called");
+
+  ros::Duration(1).sleep();   // Simulating delay
+
   res.success = true;
   return true;
 }
@@ -500,6 +510,9 @@ bool BinpickingEmulator::calibrationSetToScannerCallback(std_srvs::Trigger::Requ
 bool BinpickingEmulator::calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Reset Service called");
+
+  ros::Duration(2).sleep();   // Simulating delay
+
   res.success = true;
   return true;
 }
