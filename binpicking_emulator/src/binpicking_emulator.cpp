@@ -93,8 +93,8 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   int start_traj_size, approach_traj_size, grasp_traj_size, deapproach_traj_size, end_traj_size;
   moveit::planning_interface::MoveGroupInterface::Plan to_start_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_approach_pose;
-  moveit::planning_interface::MoveGroupInterface::Plan to_grasp_pose;
-  moveit::planning_interface::MoveGroupInterface::Plan to_deapproach_pose;
+  moveit_msgs::RobotTrajectory to_grasp_pose;
+  moveit_msgs::RobotTrajectory to_deapproach_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_end_pose;
 
   // Get current state
@@ -143,39 +143,49 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   //---------------------------------------------------
   // Plan trajectory from approach to grasp pose
   //---------------------------------------------------
-  group_->setPoseTarget(grasp_pose);
-  bool success_grasp = group_->plan(to_grasp_pose);
-  if (success_grasp)
+  std::vector<geometry_msgs::Pose> grasp_waypoints;
+  grasp_waypoints.push_back(approach_pose);
+  grasp_waypoints.push_back(grasp_pose);
+
+  double success_grasp = group_->computeCartesianPath(grasp_waypoints, 0.02, 0, to_grasp_pose, false);
+  ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_grasp * 100.0);
+
+  if (success_grasp == 1)
   {
     // Get trajectory size from plan
-    grasp_traj_size = to_grasp_pose.trajectory_.joint_trajectory.points.size();
+    grasp_traj_size = to_grasp_pose.joint_trajectory.points.size();
 
     // SetStartState instead of trajectory execution
     current_state.setJointGroupPositions(
-        "manipulator", to_grasp_pose.trajectory_.joint_trajectory.points[grasp_traj_size - 1].positions);
+        "manipulator", to_grasp_pose.joint_trajectory.points[grasp_traj_size - 1].positions);
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
-    visualizeTrajectory(to_grasp_pose.trajectory_.joint_trajectory);
+    visualizeTrajectory(to_grasp_pose.joint_trajectory);
   }
 
   //---------------------------------------------------
   // Plan trajectory from grasp to deapproach pose
   //---------------------------------------------------
-  group_->setPoseTarget(deapproach_pose);
-  bool success_deapproach = group_->plan(to_deapproach_pose);
-  if (success_deapproach)
+  std::vector<geometry_msgs::Pose> deapproach_waypoints;
+  deapproach_waypoints.push_back(grasp_pose);
+  deapproach_waypoints.push_back(deapproach_pose);
+
+  double success_deapproach = group_->computeCartesianPath(deapproach_waypoints, 0.02, 0, to_deapproach_pose, false);
+  ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_deapproach * 100.0);
+
+  if (success_deapproach == 1)
   {
     // Get trajectory size from plan
-    deapproach_traj_size = to_deapproach_pose.trajectory_.joint_trajectory.points.size();
+    deapproach_traj_size = to_deapproach_pose.joint_trajectory.points.size();
 
     // SetStartState instead of trajectory execution
     current_state.setJointGroupPositions(
-        "manipulator", to_deapproach_pose.trajectory_.joint_trajectory.points[deapproach_traj_size - 1].positions);
+        "manipulator", to_deapproach_pose.joint_trajectory.points[deapproach_traj_size - 1].positions);
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
-    visualizeTrajectory(to_deapproach_pose.trajectory_.joint_trajectory);
+    visualizeTrajectory(to_deapproach_pose.joint_trajectory);
   }
 
   //---------------------------------------------------
@@ -233,7 +243,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
 
     binpicking_operation.points.clear();
     for (int i = 0; i < grasp_traj_size; i++)
-      binpicking_operation.points.push_back(to_grasp_pose.trajectory_.joint_trajectory.points[i]);
+      binpicking_operation.points.push_back(to_grasp_pose.joint_trajectory.points[i]);
 
     binpicking_operation.gripper = 0;
     binpicking_operation.error = 0;
@@ -255,7 +265,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
-      binpicking_operation.points.push_back(to_deapproach_pose.trajectory_.joint_trajectory.points[i]);
+      binpicking_operation.points.push_back(to_deapproach_pose.joint_trajectory.points[i]);
 
     binpicking_operation.gripper = 0;
     binpicking_operation.error = 0;
@@ -292,8 +302,8 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
   int start_traj_size, approach_traj_size, grasp_traj_size, deapproach_traj_size, end_traj_size;
   moveit::planning_interface::MoveGroupInterface::Plan to_start_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_approach_pose;
-  moveit::planning_interface::MoveGroupInterface::Plan to_grasp_pose;
-  moveit::planning_interface::MoveGroupInterface::Plan to_deapproach_pose;
+  moveit_msgs::RobotTrajectory to_grasp_pose;
+  moveit_msgs::RobotTrajectory to_deapproach_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_end_pose;
 
   // Get current state
@@ -342,39 +352,49 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
   //---------------------------------------------------
   // Plan trajectory from approach to grasp pose
   //---------------------------------------------------
-  group_->setPoseTarget(grasp_pose);
-  bool success_grasp = group_->plan(to_grasp_pose);
-  if (success_grasp)
+  std::vector<geometry_msgs::Pose> grasp_waypoints;
+  grasp_waypoints.push_back(approach_pose);
+  grasp_waypoints.push_back(grasp_pose);
+
+  double success_grasp = group_->computeCartesianPath(grasp_waypoints, 0.02, 0, to_grasp_pose, false);
+  ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_grasp * 100.0);
+
+  if (success_grasp == 1)
   {
     // Get trajectory size from plan
-    grasp_traj_size = to_grasp_pose.trajectory_.joint_trajectory.points.size();
+    grasp_traj_size = to_grasp_pose.joint_trajectory.points.size();
 
     // SetStartState instead of trajectory execution
     current_state.setJointGroupPositions(
-          "manipulator", to_grasp_pose.trajectory_.joint_trajectory.points[grasp_traj_size - 1].positions);
+        "manipulator", to_grasp_pose.joint_trajectory.points[grasp_traj_size - 1].positions);
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
-    visualizeTrajectory(to_grasp_pose.trajectory_.joint_trajectory);
+    visualizeTrajectory(to_grasp_pose.joint_trajectory);
   }
 
   //---------------------------------------------------
   // Plan trajectory from grasp to deapproach pose
   //---------------------------------------------------
-  group_->setPoseTarget(deapproach_pose);
-  bool success_deapproach = group_->plan(to_deapproach_pose);
-  if (success_deapproach)
+  std::vector<geometry_msgs::Pose> deapproach_waypoints;
+  deapproach_waypoints.push_back(grasp_pose);
+  deapproach_waypoints.push_back(deapproach_pose);
+
+  double success_deapproach = group_->computeCartesianPath(deapproach_waypoints, 0.02, 0, to_deapproach_pose, false);
+  ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_deapproach * 100.0);
+
+  if (success_deapproach == 1)
   {
     // Get trajectory size from plan
-    deapproach_traj_size = to_deapproach_pose.trajectory_.joint_trajectory.points.size();
+    deapproach_traj_size = to_deapproach_pose.joint_trajectory.points.size();
 
     // SetStartState instead of trajectory execution
     current_state.setJointGroupPositions(
-          "manipulator", to_deapproach_pose.trajectory_.joint_trajectory.points[deapproach_traj_size - 1].positions);
+        "manipulator", to_deapproach_pose.joint_trajectory.points[deapproach_traj_size - 1].positions);
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
-    visualizeTrajectory(to_deapproach_pose.trajectory_.joint_trajectory);
+    visualizeTrajectory(to_deapproach_pose.joint_trajectory);
   }
 
   //---------------------------------------------------
@@ -431,7 +451,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
 
     binpicking_operation.points.clear();
     for (int i = 0; i < grasp_traj_size; i++)
-      binpicking_operation.points.push_back(to_grasp_pose.trajectory_.joint_trajectory.points[i]);
+      binpicking_operation.points.push_back(to_grasp_pose.joint_trajectory.points[i]);
 
     binpicking_operation.gripper = GRIPPER::OPEN;
     binpicking_operation.error = 0;
@@ -453,7 +473,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
-      binpicking_operation.points.push_back(to_deapproach_pose.trajectory_.joint_trajectory.points[i]);
+      binpicking_operation.points.push_back(to_deapproach_pose.joint_trajectory.points[i]);
 
     binpicking_operation.gripper = GRIPPER::CLOSE;
     binpicking_operation.error = 0;
