@@ -65,17 +65,17 @@ void CollisionObjectPublisher::publishAllCollisionObjects()
 {
   for(int i = 0; i < collision_objects.size(); i++)
   {
-    ROS_INFO_STREAM("[Label          ]: " << collision_objects[i].label);
-    ROS_INFO_STREAM("[Model filepath ]: " << collision_objects[i].model_filepath);
-    ROS_INFO_STREAM("[X position     ]: " << collision_objects[i].x_position );
-    ROS_INFO_STREAM("[Y position     ]: " << collision_objects[i].y_position );
-    ROS_INFO_STREAM("[Z position     ]: " << collision_objects[i].z_position );
-    ROS_INFO_STREAM("[ROLL           ]: " << collision_objects[i].roll );
-    ROS_INFO_STREAM("[PITCH          ]: " << collision_objects[i].pitch );
-    ROS_INFO_STREAM("[YAW            ]: " << collision_objects[i].yaw );
-    ROS_INFO_STREAM("[SCALE X        ]: " << collision_objects[i].x_scale );
-    ROS_INFO_STREAM("[SCALE Y        ]: " << collision_objects[i].y_scale );
-    ROS_INFO_STREAM("[SCALE Z        ]: " << collision_objects[i].z_scale );
+    ROS_DEBUG_STREAM("[Label          ]: " << collision_objects[i].label);
+    ROS_DEBUG_STREAM("[Model filepath ]: " << collision_objects[i].model_filepath);
+    ROS_DEBUG_STREAM("[X position     ]: " << collision_objects[i].x_position );
+    ROS_DEBUG_STREAM("[Y position     ]: " << collision_objects[i].y_position );
+    ROS_DEBUG_STREAM("[Z position     ]: " << collision_objects[i].z_position );
+    ROS_DEBUG_STREAM("[ROLL           ]: " << collision_objects[i].roll );
+    ROS_DEBUG_STREAM("[PITCH          ]: " << collision_objects[i].pitch );
+    ROS_DEBUG_STREAM("[YAW            ]: " << collision_objects[i].yaw );
+    ROS_DEBUG_STREAM("[SCALE X        ]: " << collision_objects[i].x_scale );
+    ROS_DEBUG_STREAM("[SCALE Y        ]: " << collision_objects[i].y_scale );
+    ROS_DEBUG_STREAM("[SCALE Z        ]: " << collision_objects[i].z_scale );
 
     publishSingleCollisionObject(collision_objects[i]);
   }
@@ -114,7 +114,7 @@ void CollisionObjectPublisher::publishSingleCollisionObject(CollisionObject sing
   collision_object.operation = collision_object.ADD;
 
   pub.publish(collision_object);
-  ROS_INFO_STREAM("Collision object[ " << single_object.label << " ] published");
+  ROS_DEBUG_STREAM("Collision object[ " << single_object.label << " ] published");
 }
 
 int main(int argc, char** argv)
@@ -128,9 +128,11 @@ int main(int argc, char** argv)
 
   CollisionObjectPublisher collision_object_publisher(&nh, collision_objects_list_filepath);
   
-  ros::Duration(5).sleep();
-    
-  collision_object_publisher.publishAllCollisionObjects();
+  while(ros::ok())
+  {
+    collision_object_publisher.publishAllCollisionObjects();
+    ros::Duration(10).sleep();
+  }
 
   ros::shutdown();
   return EXIT_SUCCESS;
