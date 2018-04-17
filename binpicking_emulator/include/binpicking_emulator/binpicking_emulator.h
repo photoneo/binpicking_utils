@@ -26,6 +26,7 @@ limitations under the License.
 #include <bin_pose_msgs/bin_pose.h>
 #include <photoneo_msgs/operations.h>
 #include <photoneo_msgs/operation.h>
+#include <photoneo_msgs/cartesian_goal.h>
 #include <photoneo_msgs/initialize_pose.h>
 #include <photoneo_msgs/calibration.h>
 #include <pho_robot_loader/constants.h>
@@ -47,6 +48,8 @@ public:
   bool binPickingTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingTrajArmLeftCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingTrajArmRightCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
+  bool binPickingCartArmLeftCallback(photoneo_msgs::cartesian_goal::Request& req, photoneo_msgs::cartesian_goal::Response& res);
+  bool binPickingCartArmRightCallback(photoneo_msgs::cartesian_goal::Request& req, photoneo_msgs::cartesian_goal::Response& res);
   bool binPickingScanAndTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
   bool binPickingInitArmLeftCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);

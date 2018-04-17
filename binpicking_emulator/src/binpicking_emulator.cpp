@@ -904,6 +904,40 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
   }
 }
 
+bool BinpickingEmulator::binPickingCartArmLeftCallback(photoneo_msgs::cartesian_goal::Request& req,
+                                                       photoneo_msgs::cartesian_goal::Response& res)
+{
+  ROS_INFO("BINPICKING EMULATOR: Binpicking Arm Left Cartesian Goal Service called");
+  bin_pose_msgs::bin_pose srv;
+
+  if (bin_pose_arm_left_client_.call(srv))
+  {
+    res.goal = srv.response.grasp_pose;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+bool BinpickingEmulator::binPickingCartArmRightCallback(photoneo_msgs::cartesian_goal::Request& req,
+                                                        photoneo_msgs::cartesian_goal::Response& res)
+{
+  ROS_INFO("BINPICKING EMULATOR: Binpicking Arm Right Cartesian Goal Service called");
+  bin_pose_msgs::bin_pose srv;
+
+  if (bin_pose_arm_right_client_.call(srv))
+  {
+    res.goal = srv.response.grasp_pose;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
 bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::calibration::Request& req, photoneo_msgs::calibration::Response& res)
 {
   ROS_INFO("BINPICKING EMULATOR: Calibration Add Point Service called");
@@ -965,6 +999,10 @@ int main(int argc, char** argv)
       nh.advertiseService(BINPICKING_SERVICES::TRAJECTORY_ARM_LEFT, &BinpickingEmulator::binPickingTrajArmLeftCallback, &emulator);
   ros::ServiceServer bin_picking_right_arm_traj_service =
       nh.advertiseService(BINPICKING_SERVICES::TRAJECTORY_ARM_RIGHT, &BinpickingEmulator::binPickingTrajArmRightCallback, &emulator);
+  ros::ServiceServer bin_picking_arm_left_cart_service =
+      nh.advertiseService(BINPICKING_SERVICES::CARTESIAN_GOAL_ARM_LEFT, &BinpickingEmulator::binPickingCartArmLeftCallback, &emulator);
+  ros::ServiceServer bin_picking_arm_right_cart_service =
+      nh.advertiseService(BINPICKING_SERVICES::CARTESIAN_GOAL_ARM_RIGHT, &BinpickingEmulator::binPickingCartArmRightCallback, &emulator);
   ros::ServiceServer bin_picking_scan_and_traj_service = nh.advertiseService(
       BINPICKING_SERVICES::SCAN_AND_TRAJECTORY, &BinpickingEmulator::binPickingScanAndTrajCallback, &emulator);
   ros::ServiceServer bin_picking_init_service =
