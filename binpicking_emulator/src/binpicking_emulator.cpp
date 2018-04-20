@@ -46,8 +46,10 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
 
   // Configure bin pose client
   bin_pose_client_ = nh->serviceClient<bin_pose_msgs::bin_pose>("bin_pose");
-  bin_pose_arm_left_client_ = nh->serviceClient<bin_pose_msgs::bin_pose>("bin_pose_left");
-  bin_pose_arm_right_client_ = nh->serviceClient<bin_pose_msgs::bin_pose>("bin_pose_right");
+  //bin_pose_arm_left_client_ = nh->serviceClient<bin_pose_msgs::bin_pose>("bin_pose_left");
+  //bin_pose_arm_right_client_ = nh->serviceClient<bin_pose_msgs::bin_pose>("bin_pose_right");
+  localization_arm_left_client_ = nh->serviceClient<localization_interface::get_position>("localization/get_position");
+  localization_arm_right_client_ = nh->serviceClient<localization_interface::get_position>("localization/get_position");
 
   // Set move group params
   group_manipulator_->setPlannerId("RRTConnectkConfigDefault");
@@ -372,8 +374,7 @@ bool BinpickingEmulator::binPickingTrajArmLeftCallback(photoneo_msgs::operations
 {
   ROS_INFO("BINPICKING EMULATOR: Binpicking Trajectory Arm Left Service called");
 
-  int start_traj_size, approach_traj_size, grasp_traj_size, deapproach_traj_size, end_traj_size;
-  moveit::planning_interface::MoveGroupInterface::Plan to_start_pose;
+  int approach_traj_size, grasp_traj_size, deapproach_traj_size, end_traj_size;
   moveit::planning_interface::MoveGroupInterface::Plan to_approach_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_grasp_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_deapproach_pose;
@@ -389,10 +390,18 @@ bool BinpickingEmulator::binPickingTrajArmLeftCallback(photoneo_msgs::operations
   group_arm_left_->setStartState(current_state);
 
   // Get random bin picking pose from emulator
-  bin_pose_msgs::bin_pose srv;
+  //bin_pose_msgs::bin_pose srv;
+  localization_interface::get_position srv;
   geometry_msgs::Pose approach_pose, grasp_pose, deapproach_pose;
 
-  if (bin_pose_arm_left_client_.call(srv))
+  //if (bin_pose_arm_left_client_.call(srv))
+  //{
+  //  grasp_pose = srv.response.grasp_pose;
+  //  approach_pose = srv.response.approach_pose;
+  //  deapproach_pose = srv.response.deapproach_pose;
+  //}
+
+  if (localization_arm_left_client_.call(srv))
   {
     grasp_pose = srv.response.grasp_pose;
     approach_pose = srv.response.approach_pose;
@@ -551,8 +560,7 @@ bool BinpickingEmulator::binPickingTrajArmRightCallback(photoneo_msgs::operation
 {
   ROS_INFO("BINPICKING EMULATOR: Binpicking Trajectory Arm Right Service called");
 
-  int start_traj_size, approach_traj_size, grasp_traj_size, deapproach_traj_size, end_traj_size;
-  moveit::planning_interface::MoveGroupInterface::Plan to_start_pose;
+  int approach_traj_size, grasp_traj_size, deapproach_traj_size, end_traj_size;
   moveit::planning_interface::MoveGroupInterface::Plan to_approach_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_grasp_pose;
   moveit::planning_interface::MoveGroupInterface::Plan to_deapproach_pose;
@@ -568,10 +576,18 @@ bool BinpickingEmulator::binPickingTrajArmRightCallback(photoneo_msgs::operation
   group_arm_right_->setStartState(current_state);
 
   // Get random bin picking pose from emulator
-  bin_pose_msgs::bin_pose srv;
+  //bin_pose_msgs::bin_pose srv;
+  localization_interface::get_position srv;
   geometry_msgs::Pose approach_pose, grasp_pose, deapproach_pose;
 
-  if (bin_pose_arm_right_client_.call(srv))
+  //if (bin_pose_arm_right_client_.call(srv))
+  //{
+  //  grasp_pose = srv.response.grasp_pose;
+  //  approach_pose = srv.response.approach_pose;
+  //  deapproach_pose = srv.response.deapproach_pose;
+  //}
+
+  if (localization_arm_right_client_.call(srv))
   {
     grasp_pose = srv.response.grasp_pose;
     approach_pose = srv.response.approach_pose;

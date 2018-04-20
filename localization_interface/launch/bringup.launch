@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- Load Localization Configuration on Param Server -->
+  <rosparam command="load" file="/home/controller/catkin_ws/DataRos/localization_params.yaml" />
+
+  <!-- Launch Localization Node -->
+  <node name="localization_node" pkg="localization_interface" type="localization_interface" output="screen" respawn="true" />
+
+</launch>

@@ -30,6 +30,7 @@ limitations under the License.
 #include <photoneo_msgs/initialize_pose.h>
 #include <photoneo_msgs/calibration.h>
 #include <pho_robot_loader/constants.h>
+#include <localization_interface/get_position.h>
 
 // MoveIt!
 #include <moveit/robot_state/robot_state.h>
@@ -63,6 +64,8 @@ private:
   ros::ServiceClient bin_pose_client_;
   ros::ServiceClient bin_pose_arm_left_client_;
   ros::ServiceClient bin_pose_arm_right_client_;
+  ros::ServiceClient localization_arm_left_client_;
+  ros::ServiceClient localization_arm_right_client_;
 
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
   moveit::planning_interface::MoveGroupInterfacePtr group_manipulator_;
