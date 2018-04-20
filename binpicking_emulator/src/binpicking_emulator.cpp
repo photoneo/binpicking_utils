@@ -995,14 +995,23 @@ int main(int argc, char** argv)
   }
 
   // Wait for bin_pose service
-  bool bin_pose_emulator_available = ros::service::exists("/bin_pose", true);
-  while (!bin_pose_emulator_available)
+  //bool bin_pose_emulator_available = ros::service::exists("/bin_pose", true);
+  //while (!bin_pose_emulator_available)
+  //{
+  //  ros::Duration(1).sleep();
+  //  bin_pose_emulator_available = ros::service::exists("/bin_pose", true);
+  //  ROS_WARN("BINPICKING EMULATOR: Waiting for Bin pose emulator to provide /bin_pose service ");
+  //}
+
+  // Wait for bin_pose service
+  bool localization_available = ros::service::exists("/localization/get_position", true);
+  while (!localization_available)
   {
     ros::Duration(1).sleep();
-    bin_pose_emulator_available = ros::service::exists("/bin_pose", true);
-    ROS_WARN("BINPICKING EMULATOR: Waiting for Bin pose emulator to provide /bin_pose service ");
+    localization_available = ros::service::exists("/localization/get_position", true);
+    ROS_WARN("BINPICKING EMULATOR: Waiting for localization/get_positione service ");
   }
-
+  
   // Create BinpickingEmulator instance
   BinpickingEmulator emulator(&nh);
 

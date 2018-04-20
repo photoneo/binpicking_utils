@@ -64,8 +64,8 @@ private:
   double RAD2DEG = 57.2958;
   uint8_t LOCALIZATION_OK = 1;
   uint8_t LOCALIZATION_TIMEOUT = 255;
-  int APPROACH_HEIGHT = 50;    //mm
-  int DEAPPROACH_HEIGHT = 50;  //mm
+  double APPROACH_HEIGHT = 0.05;    //mm
+  double DEAPPROACH_HEIGHT = 0.05;  //mm
 
   // Variables
   tf::TransformBroadcaster br_;
