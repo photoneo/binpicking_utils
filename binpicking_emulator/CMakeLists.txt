@@ -12,7 +12,8 @@ find_package(catkin REQUIRED
     bin_pose_msgs
     moveit_core
     moveit_ros_planning_interface
-    tf)
+    tf
+    stomp_param_changer )
 
 catkin_package(
   INCLUDE_DIRS include

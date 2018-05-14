@@ -30,12 +30,18 @@ limitations under the License.
 #include <photoneo_msgs/add_point.h>
 #include <pho_robot_loader/constants.h>
 
+#include <iostream>
+#include <fstream>
+
+
 // MoveIt!
 #include <moveit/robot_state/robot_state.h>
 #include <moveit/robot_model/robot_model.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+
+#include <stomp_param_changer/statistics.h>
 
 class BinpickingEmulator
 {
@@ -50,6 +56,7 @@ public:
   bool calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res);
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
+    void binPickingLoop();
 
 private:
   // Variables
@@ -59,7 +66,12 @@ private:
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
   moveit::planning_interface::MoveGroupInterfacePtr group_;
 
-  int num_of_joints_;
+
+    void publishResult();
+    void createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time);
+
+
+    int num_of_joints_;
   std::vector<double> start_pose_from_robot_;
   std::vector<double> end_pose_from_robot_;
 
@@ -68,6 +80,20 @@ private:
   // Functions
   void visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory);
 
+    std::ofstream outfile_time_;
+
+    ros::Publisher statistics_pub_;
+
+    double average_time_;
+    int num_of_attempt_;
+    int num_of_success_;
+    int num_of_fails_;
+    double sum_time_;
+    double sum_joint_diff_;
+    double average_joint_diff_;
+
+    std::string log_path_;
+    int max_attempts_;
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H

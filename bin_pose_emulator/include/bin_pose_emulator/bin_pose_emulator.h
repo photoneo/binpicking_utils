@@ -50,6 +50,13 @@ struct ConfigData
   // Planning constraints
   double approach_distance;
   double deapproach_height;
+
+  double step_x;
+  double step_y;
+  double step_z;
+  double step_roll;
+  double step_pitch;
+  double step_yaw;
 };
 
 class BinPoseEmulator
@@ -63,6 +70,7 @@ public:
 
 private:
   double randGen(double fMin, double fMax);
+  bool getNextPose(geometry_msgs::Pose *pose);
   bool parseConfig(std::string filepath);
 
   void visualizeBin(void);
@@ -73,6 +81,8 @@ private:
   ros::Publisher marker_pub_;
 
   ConfigData config_;
+
+
 };
 
 #endif // BIN_POSE_EMULATOR_H

@@ -5,7 +5,8 @@ find_package(catkin REQUIRED
   COMPONENTS
     roscpp
     bin_pose_msgs
-    tf)
+    tf
+   )
 
 catkin_package()
 

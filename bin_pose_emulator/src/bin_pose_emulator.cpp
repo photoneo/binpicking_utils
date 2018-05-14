@@ -15,6 +15,8 @@ limitations under the License.
  *********************************************************************/
 
 #include "bin_pose_emulator/bin_pose_emulator.h"
+//#define RANDOM_BIN_POSE
+
 
 BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)
 {
@@ -33,9 +35,12 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
                         bin_pose_msgs::bin_pose::Response& res)
 {
 
+  ROS_WARN("BIN POSE EMULATOR: callback!");
+
   //-----------------------------------------------------------------------------------------
   // Generate random Grasp pose
   geometry_msgs::Pose grasp_pose;
+#ifdef RANDOM_BIN_POSE
   grasp_pose.position.x = randGen(config_.bin_center_x - config_.bin_size_x / 2,
                                   config_.bin_center_x + config_.bin_size_x / 2);
   grasp_pose.position.y = randGen(config_.bin_center_y - config_.bin_size_y / 2,
@@ -56,6 +61,20 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   grasp_pose.orientation.y = grasp_orientation.getY();
   grasp_pose.orientation.z = grasp_orientation.getZ();
   grasp_pose.orientation.w = grasp_orientation.getW();
+
+  #else
+  bool isEnd =  getNextPose(&grasp_pose);
+
+    if (isEnd)
+        return false;
+
+  tf::Quaternion grasp_orientation;
+  grasp_orientation.setX(grasp_pose.orientation.x);
+  grasp_orientation.setY(grasp_pose.orientation.y);
+  grasp_orientation.setZ(grasp_pose.orientation.z);
+  grasp_orientation.setW(grasp_pose.orientation.w);
+
+#endif
 
   res.grasp_pose = grasp_pose;
 
@@ -89,8 +108,70 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   broadcastPoseTF(grasp_pose);
 
   res.deapproach_pose = deapproach_pose;
-  
+
   return true;
+}
+
+bool BinPoseEmulator::getNextPose(geometry_msgs::Pose *pose) {
+
+  static double x = config_.bin_center_x -config_.bin_size_x / 2;
+  static double y = config_.bin_center_y -config_.bin_size_y / 2;
+  static double z = config_.bin_center_z -config_.bin_size_z / 2;
+
+  static double roll = config_.roll_default -config_.roll_range / 2;
+  static double pitch = config_.pitch_default -config_.pitch_range / 2;
+  static double yaw = config_.yaw_default -config_.yaw_range / 2;
+
+  yaw += config_.step_yaw;
+  if (yaw >= config_.yaw_default + config_.yaw_range / 2){
+    yaw = config_.yaw_default - config_.yaw_range / 2;
+    pitch += config_.step_pitch;
+
+    if (pitch >= config_.pitch_default + config_.pitch_range / 2) {
+      pitch = config_.pitch_default - config_.pitch_range / 2;
+      roll += config_.step_roll;
+
+      if (roll >= config_.roll_default + config_.roll_range / 2) {
+        roll = config_.roll_default - config_.roll_range / 2;
+        x += config_.step_x;
+
+        if (x >= config_.bin_center_x + config_.bin_size_x / 2) {
+          x = config_.bin_center_x - config_.bin_size_x / 2;
+          y += config_.step_y;
+
+          if (y >= config_.bin_center_y + config_.bin_size_y / 2) {
+            y = config_.bin_center_y - config_.bin_size_y / 2;
+            z += config_.step_z;
+
+            if (z >= config_.bin_center_z + config_.bin_size_z / 2) {
+
+              x = config_.bin_center_x -config_.bin_size_x / 2;
+              y = config_.bin_center_y -config_.bin_size_y / 2;
+              z = config_.bin_center_z -config_.bin_size_z / 2;
+
+              roll = config_.roll_default -config_.roll_range / 2;
+              pitch = config_.pitch_default -config_.pitch_range / 2;
+              yaw = config_.yaw_default -config_.yaw_range / 2;
+                return true;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  pose->position.x = x;
+  pose->position.y = y;
+  pose->position.z = z;
+
+  tf::Quaternion grasp_orientation;
+  grasp_orientation.setRPY(roll, pitch, yaw);
+  pose->orientation.x = grasp_orientation.getX();
+  pose->orientation.y = grasp_orientation.getY();
+  pose->orientation.z = grasp_orientation.getZ();
+  pose->orientation.w = grasp_orientation.getW();
+
+  return false;
 }
 
 double BinPoseEmulator::randGen(double fMin, double fMax)
@@ -107,7 +188,6 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
     config_.bin_center_x = config_file["bin_center_x"].as<float>();
     config_.bin_center_y = config_file["bin_center_y"].as<float>();
     config_.bin_center_z = config_file["bin_center_z"].as<float>();
-
     config_.bin_size_x = config_file["bin_size_x"].as<float>();
     config_.bin_size_y = config_file["bin_size_y"].as<float>();
     config_.bin_size_z = config_file["bin_size_z"].as<float>();
@@ -122,6 +202,15 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
 
     config_.approach_distance = config_file["approach_distance"].as<float>();
     config_.deapproach_height = config_file["deapproach_height"].as<float>();
+
+#ifndef RANDOM_BIN_POSE
+    config_.step_x = config_file["step_x"].as<float>();
+    config_.step_y = config_file["step_y"].as<float>();
+    config_.step_z = config_file["step_z"].as<float>();
+    config_.step_roll = config_file["step_roll"].as<float>();
+    config_.step_pitch = config_file["step_pitch"].as<float>();
+    config_.step_yaw = config_file["step_yaw"].as<float>();
+#endif
   }
   catch (YAML::ParserException& e)
   {
@@ -230,6 +319,7 @@ int main(int argc, char* argv[])
   ros::ServiceServer service =
       nh.advertiseService("bin_pose", &BinPoseEmulator::callback, &emulator);
 
+  ROS_WARN("creating service");
   ros::spin();
 
   return EXIT_SUCCESS;

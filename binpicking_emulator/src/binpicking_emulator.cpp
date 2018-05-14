@@ -19,6 +19,7 @@ limitations under the License.
 using namespace pho_robot_loader;
 
 BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_index_(0)
+        , outfile_time_("/home/controller/catkin_ws/stomp_test_time.txt"), log_path_("/home/controller/catkin_ws")
 {
   // Initialize Moveit group
   group_.reset(new moveit::planning_interface::MoveGroupInterface("manipulator"));
@@ -43,10 +44,19 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
 
   // Set trajectory visualization publisher
   trajectory_pub_ = nh->advertise<visualization_msgs::Marker>("trajectory", 1);
+  statistics_pub_ = nh->advertise<stomp_param_changer::statistics>("/statistics", 1);
 
   // Set move group params
   group_->setPlannerId("RRTConnectkConfigDefault");
   group_->setGoalTolerance(0.001);
+
+  sum_time_ = 0;
+  num_of_attempt_ = 0;
+  average_time_= 0;
+  num_of_fails_ = 0;
+  num_of_success_ = 0;
+
+    // outfile_time_ = new std::ofstream();
 }
 
 BinpickingEmulator::~BinpickingEmulator()
@@ -82,7 +92,240 @@ bool BinpickingEmulator::binPickingScanCallback(std_srvs::Trigger::Request& req,
   ROS_INFO("BIN PICKING EMULATOR: Binpicking Scan Service called");
   ros::Duration(5).sleep();
   res.success = true;
-  return true;
+
+    return true;
+}
+
+
+void BinpickingEmulator::binPickingLoop(){
+
+    bool use_linear_path = false;
+    max_attempts_ = 50000;
+
+    ros::NodeHandle nh;
+    nh.getParam("/virtual_robot/start_pose", start_pose_from_robot_);
+    nh.getParam("/virtual_robot/use_linear_path", use_linear_path);
+    nh.getParam("/virtual_robot/log_path", log_path_);
+    nh.getParam("virtual_robot/max_attempts", max_attempts_);
+
+    ROS_INFO("BIN PICKING EMULATOR: Binpicking Trajectory Service called");
+    int  grasp_traj_size, end_traj_size;
+    moveit_msgs::RobotTrajectory to_grasp_pose;
+    moveit_msgs::RobotTrajectory to_deapproach_pose;
+
+    moveit::planning_interface::MoveGroupInterface::Plan to_end_pose;
+    moveit::planning_interface::MoveGroupInterface::Plan to_approach_pose;
+
+    robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+    robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
+    ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
+    robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
+    kinematic_state->setToDefaultValues();
+    const robot_state::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("manipulator");
+
+    // Get current state
+    robot_state::RobotState current_state(*group_->getCurrentState());
+
+    while (ros::ok()) {
+
+        // Set Start state
+        //---------------------------------------------------
+
+        current_state.setJointGroupPositions(
+                "manipulator", start_pose_from_robot_);
+        group_->setStartState(current_state);
+
+
+        // Get random bin picking pose from emulator
+        //---------------------------------------------------
+
+        bin_pose_msgs::bin_pose srv;
+        geometry_msgs::Pose approach_pose, grasp_pose, deapproach_pose;
+
+        if (bin_pose_client_.call(srv)) {
+            grasp_pose = srv.response.grasp_pose;
+            approach_pose = srv.response.approach_pose;
+            deapproach_pose = srv.response.deapproach_pose;
+
+        } else {
+            // Dosiahol vsetky party v bin-e
+            publishResult();
+           // sleep(2);
+           // continue;
+            ros::shutdown();
+        }
+
+        std::vector<double> joint_values;
+        double found_ik = false;
+        bool success_approach = false;
+        double success_grasp = 0;
+        double success_deapproach = 0;
+
+
+        // Find IK in approach pose
+        //---------------------------------------------------
+        found_ik = kinematic_state->setFromIK(joint_model_group, approach_pose, 10, 0.1);
+        kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+
+        double time = 0;
+        if (found_ik) {
+
+            ROS_WARN("found IK");
+            //---------------------------------------------------
+            // Plan trajectory from current to approach pose
+            //---------------------------------------------------
+
+
+            double time = ros::Time::now().toSec();
+            group_->setJointValueTarget(joint_values);
+            success_approach = group_->plan(to_approach_pose);
+            time = ros::Time::now().toSec() - time;
+
+            createStatistics(success_approach, to_approach_pose, time);
+        }
+
+        if (success_approach)
+        {
+            // Get trajectory size from plan
+            int traj_size = to_approach_pose.trajectory_.joint_trajectory.points.size();
+
+            // SetStartState instead of trajectory execution
+            current_state.setJointGroupPositions(
+                    "manipulator", to_approach_pose.trajectory_.joint_trajectory.points[traj_size - 1].positions);
+            group_->setStartState(current_state);
+
+            // Visualize trajectory in RViz
+            visualizeTrajectory(to_approach_pose.trajectory_.joint_trajectory);
+        } else {
+            //sleep(5);
+            continue;
+        }
+
+
+            //---------------------------------------------------
+            // Plan linear trajectory to grasp pose
+            //---------------------------------------------------
+            std::vector<geometry_msgs::Pose> grasp_waypoints;
+            //grasp_waypoints.push_back(approach_pose);
+            grasp_waypoints.push_back(grasp_pose);
+
+            success_grasp = group_->computeCartesianPath(grasp_waypoints, 0.02, 0, to_grasp_pose, false);
+            ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_grasp * 100.0);
+
+
+            if (success_grasp == 1) {
+                // Get trajectory size from plan
+                grasp_traj_size = to_grasp_pose.joint_trajectory.points.size();
+
+                // SetStartState instead of trajectory execution
+                current_state.setJointGroupPositions(
+                        "manipulator", to_grasp_pose.joint_trajectory.points[grasp_traj_size - 1].positions);
+                group_->setStartState(current_state);
+
+                // Visualize trajectory in RViz
+                visualizeTrajectory(to_grasp_pose.joint_trajectory);
+
+                joint_values = end_pose_from_robot_;
+            } else {
+                continue;
+            }
+
+        //---------------------------------------------------
+        // Plan trajectory from grasp to deapproach pose
+        //---------------------------------------------------
+        std::vector<geometry_msgs::Pose> deapproach_waypoints;
+        deapproach_waypoints.push_back(deapproach_pose);
+
+        success_deapproach = group_->computeCartesianPath(deapproach_waypoints, 0.02, 0, to_deapproach_pose, false);
+        ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_deapproach * 100.0);
+
+        if (success_deapproach == 1)
+        {
+            // Get trajectory size from plan
+            int traj_size = to_deapproach_pose.joint_trajectory.points.size();
+
+            // SetStartState instead of trajectory execution
+            current_state.setJointGroupPositions(
+                    "manipulator", to_deapproach_pose.joint_trajectory.points[traj_size - 1].positions);
+            group_->setStartState(current_state);
+
+            // Visualize trajectory in RViz
+            visualizeTrajectory(to_deapproach_pose.joint_trajectory);
+
+        } else{
+            continue;
+        }
+
+        //---------------------------------------------------
+        // Plan trajectory to end pose using moveit stomp
+        //--------------------------------------------------
+
+            time = ros::Time::now().toSec();
+            group_->setJointValueTarget(joint_values);
+            bool success_end = group_->plan(to_end_pose);
+            time = ros::Time::now().toSec() - time;
+
+            createStatistics(success_end, to_end_pose, time);
+    }
+}
+
+void BinpickingEmulator::createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time){
+
+    num_of_attempt_++;
+
+    if (success){
+    double sum_joint_diff_swap = 0;
+    for (int i = 1; i < plan.trajectory_.joint_trajectory.points.size(); i++) {
+        for (int j = 0; j < 6; j++) {
+            sum_joint_diff_swap += fabs(plan.trajectory_.joint_trajectory.points[i].positions[j] -
+                                        plan.trajectory_.joint_trajectory.points[i - 1].positions[j]);
+        }
+    }
+
+    sum_joint_diff_ += sum_joint_diff_swap;
+    sum_time_ += time;
+
+    num_of_success_++;
+    average_time_ = sum_time_ / num_of_success_;
+    average_joint_diff_ = sum_joint_diff_ / num_of_success_;
+
+    } else {
+        num_of_fails_++;
+    }
+
+    ROS_INFO("attempt %d, average time %f, average joint diff %f, fails %d", num_of_attempt_, average_time_, average_joint_diff_, num_of_fails_);
+
+    if (num_of_attempt_ == max_attempts_) {
+
+        publishResult();
+        ros::shutdown();
+
+    }
+}
+
+void BinpickingEmulator::publishResult() {
+
+    stomp_param_changer::statistics msg;
+    msg.num_of_attempts = num_of_attempt_;
+    msg.num_of_fails = num_of_fails_;
+    msg.average_joint_diff = average_joint_diff_;
+    msg.average_time = average_time_;
+
+    static int num_of_callbacks = 0;
+
+    std::to_string(num_of_callbacks);
+
+    std::ofstream outfile_results(log_path_ + "/results_" + std::to_string(num_of_callbacks++) + ".txt");
+
+    outfile_results << msg << "\n";
+
+    statistics_pub_.publish(msg);
+
+    num_of_success_ = 0;
+    num_of_attempt_ = 0;
+    num_of_fails_ = 0;
+    sum_joint_diff_ = 0;
+    sum_time_ = 0;
 }
 
 bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Request& req,
@@ -100,15 +343,14 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   // Get current state
   robot_state::RobotState current_state(*group_->getCurrentState());
 
+
   //---------------------------------------------------
   // Set Start state
   //---------------------------------------------------
-  group_->setJointValueTarget(start_pose_from_robot_);
-  group_->plan(to_start_pose);
-  start_traj_size = to_start_pose.trajectory_.joint_trajectory.points.size();
-  current_state.setJointGroupPositions(
-      "manipulator", to_start_pose.trajectory_.joint_trajectory.points[start_traj_size - 1].positions);
-  group_->setStartState(current_state);
+    current_state.setJointGroupPositions(
+            "manipulator", start_pose_from_robot_);
+
+    group_->setStartState(current_state);
 
   // Get random bin picking pose from emulator
   bin_pose_msgs::bin_pose srv;
@@ -122,26 +364,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   }
 
   //---------------------------------------------------
-  // Plan trajectory from current to approach pose
-  //---------------------------------------------------
-  group_->setPoseTarget(approach_pose);
-  bool success_approach = group_->plan(to_approach_pose);
-  if (success_approach)
-  {
-    // Get trajectory size from plan
-    approach_traj_size = to_approach_pose.trajectory_.joint_trajectory.points.size();
-
-    // SetStartState instead of trajectory execution
-    current_state.setJointGroupPositions(
-        "manipulator", to_approach_pose.trajectory_.joint_trajectory.points[approach_traj_size - 1].positions);
-    group_->setStartState(current_state);
-
-    // Visualize trajectory in RViz
-    visualizeTrajectory(to_approach_pose.trajectory_.joint_trajectory);
-  }
-
-  //---------------------------------------------------
-  // Plan trajectory from approach to grasp pose
+  // Plan trajectory to grasp pose
   //---------------------------------------------------
   std::vector<geometry_msgs::Pose> grasp_waypoints;
   grasp_waypoints.push_back(approach_pose);
@@ -164,36 +387,44 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     visualizeTrajectory(to_grasp_pose.joint_trajectory);
   }
 
-  //---------------------------------------------------
-  // Plan trajectory from grasp to deapproach pose
-  //---------------------------------------------------
-  std::vector<geometry_msgs::Pose> deapproach_waypoints;
-  deapproach_waypoints.push_back(grasp_pose);
-  deapproach_waypoints.push_back(deapproach_pose);
+    //---------------------------------------------------
+    // Plan trajectory from grasp to deapproach pose
+    //---------------------------------------------------
+    std::vector<geometry_msgs::Pose> deapproach_waypoints;
+    deapproach_waypoints.push_back(grasp_pose);
+    deapproach_waypoints.push_back(deapproach_pose);
 
-  double success_deapproach = group_->computeCartesianPath(deapproach_waypoints, 0.02, 0, to_deapproach_pose, false);
-  ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_deapproach * 100.0);
+    double success_deapproach = group_->computeCartesianPath(deapproach_waypoints, 0.02, 0, to_deapproach_pose, false);
+    ROS_INFO("Grasp Cartesian Path: %.2f%% achieved", success_deapproach * 100.0);
 
-  if (success_deapproach == 1)
-  {
-    // Get trajectory size from plan
-    deapproach_traj_size = to_deapproach_pose.joint_trajectory.points.size();
+    if (success_deapproach == 1)
+    {
+        // Get trajectory size from plan
+        deapproach_traj_size = to_deapproach_pose.joint_trajectory.points.size();
 
-    // SetStartState instead of trajectory execution
-    current_state.setJointGroupPositions(
-        "manipulator", to_deapproach_pose.joint_trajectory.points[deapproach_traj_size - 1].positions);
-    group_->setStartState(current_state);
+        // SetStartState instead of trajectory execution
+        current_state.setJointGroupPositions(
+                "manipulator", to_deapproach_pose.joint_trajectory.points[deapproach_traj_size - 1].positions);
+        group_->setStartState(current_state);
 
-    // Visualize trajectory in RViz
-    visualizeTrajectory(to_deapproach_pose.joint_trajectory);
-  }
+        // Visualize trajectory in RViz
+        visualizeTrajectory(to_deapproach_pose.joint_trajectory);
+    }
 
-  //---------------------------------------------------
-  // Plan trajectory from deapproach to end pose
-  //---------------------------------------------------
-  group_->setJointValueTarget(end_pose_from_robot_);
+
+    //---------------------------------------------------
+  // Plan trajectory to end pose
+  //--------------------------------------------------
+    double time = ros::Time::now().toSec();
+
+    group_->setJointValueTarget(end_pose_from_robot_);
   bool success_end = group_->plan(to_end_pose);
-  if (success_end)
+    time = ros::Time::now().toSec() - time;
+
+    static std::ofstream outfile("/home/controller/catkin_ws/stomp_test.txt");
+
+
+    if (success_end)
   {
     // Get trajectory size from plan
     end_traj_size = to_end_pose.trajectory_.joint_trajectory.points.size();
@@ -205,6 +436,27 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_end_pose.trajectory_.joint_trajectory);
+    outfile << "true " << time <<  "\n";
+
+    double sum_joint_diff_swap = 0;
+      for (int i = 1; i < end_traj_size; i++){
+          for (int j = 0; j < 6; j++){
+            sum_joint_diff_swap += fabs(to_end_pose.trajectory_.joint_trajectory.points[i].positions[j] - to_end_pose.trajectory_.joint_trajectory.points[i - 1].positions[j]);
+          }
+
+      }
+    sum_joint_diff_ = sum_joint_diff_swap / (6*end_traj_size);
+
+
+      sum_time_ += time;
+      num_of_attempt_++;
+      average_time_ = sum_time_ / num_of_attempt_;
+      average_joint_diff_ = sum_joint_diff_ / num_of_attempt_;
+
+
+  } else {
+        outfile << "false " << time <<  "" << grasp_pose << "\n";
+        num_of_fails_++;
   }
 
   //---------------------------------------------------
@@ -212,12 +464,12 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   //---------------------------------------------------
 
   // Check planning result
-  if ((success_approach) && (success_grasp) && (success_deapproach) && (success_end))
-  {
-    photoneo_msgs::operation binpicking_operation;
+  //if ((success_approach) )//&& (success_grasp) && (success_deapproach) && (success_end))
+  //{
+ //  photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    /*binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
@@ -228,70 +480,70 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     binpicking_operation.info = 0;
 
     res.operations.push_back(binpicking_operation);
-
+*/
     // Operation 2 - Open Gripper
-    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
-    binpicking_operation.points.clear();
-    binpicking_operation.gripper = GRIPPER::OPEN;
-    binpicking_operation.error = 0;
-    binpicking_operation.info = 0;
-
-    res.operations.push_back(binpicking_operation);
-
-    // Operation 3 - Grasp Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
-
-    binpicking_operation.points.clear();
-    for (int i = 0; i < grasp_traj_size; i++)
-      binpicking_operation.points.push_back(to_grasp_pose.joint_trajectory.points[i]);
-
-    binpicking_operation.gripper = 0;
-    binpicking_operation.error = 0;
-    binpicking_operation.info = 0;
-
-    res.operations.push_back(binpicking_operation);
-
-    // Operation 4 - Close Gripper
-    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
-    binpicking_operation.points.clear();
-    binpicking_operation.gripper = GRIPPER::CLOSE;
-    binpicking_operation.error = 0;
-    binpicking_operation.info = 0;
-
-    res.operations.push_back(binpicking_operation);
-
-    // Operation 5 - Deapproach trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
-
-    binpicking_operation.points.clear();
-    for (int i = 0; i < deapproach_traj_size; i++)
-      binpicking_operation.points.push_back(to_deapproach_pose.joint_trajectory.points[i]);
-
-    binpicking_operation.gripper = 0;
-    binpicking_operation.error = 0;
-    binpicking_operation.info = 0;
-
-    res.operations.push_back(binpicking_operation);
-
-    // Operation 6 - End Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
-
-    binpicking_operation.points.clear();
-    for (int i = 0; i < end_traj_size; i++)
-      binpicking_operation.points.push_back(to_end_pose.trajectory_.joint_trajectory.points[i]);
-
-    binpicking_operation.gripper = 0;
-    binpicking_operation.error = 0;
-    binpicking_operation.info = 0;
-
-    res.operations.push_back(binpicking_operation);
+//   binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
+//    binpicking_operation.points.clear();
+//    binpicking_operation.gripper = GRIPPER::OPEN;
+//    binpicking_operation.error = 0;
+//    binpicking_operation.info = 0;
+//
+//    res.operations.push_back(binpicking_operation);
+//
+//    // Operation 3 - Grasp Trajectory
+//    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+//
+//    binpicking_operation.points.clear();
+//    for (int i = 0; i < grasp_traj_size; i++)
+//      binpicking_operation.points.push_back(to_grasp_pose.joint_trajectory.points[i]);
+//
+//    binpicking_operation.gripper = 0;
+//    binpicking_operation.error = 0;
+//    binpicking_operation.info = 0;
+//
+//    res.operations.push_back(binpicking_operation);
+//
+//    // Operation 4 - Close Gripper
+//   /* binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
+//    binpicking_operation.points.clear();
+//    binpicking_operation.gripper = GRIPPER::CLOSE;
+//    binpicking_operation.error = 0;
+//    binpicking_operation.info = 0;
+//
+//    res.operations.push_back(binpicking_operation);
+//
+//    // Operation 5 - Deapproach trajectory
+//    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+//
+//    binpicking_operation.points.clear();
+//    for (int i = 0; i < deapproach_traj_size; i++)
+//      binpicking_operation.points.push_back(to_deapproach_pose.joint_trajectory.points[i]);
+//
+//    binpicking_operation.gripper = 0;
+//    binpicking_operation.error = 0;
+//    binpicking_operation.info = 0;
+//
+//    res.operations.push_back(binpicking_operation);
+//*/
+//    // Operation 6 - End Trajectory
+//    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+//
+//    binpicking_operation.points.clear();
+//    for (int i = 0; i < end_traj_size; i++)
+//      binpicking_operation.points.push_back(to_end_pose.trajectory_.joint_trajectory.points[i]);
+//
+//    binpicking_operation.gripper = 0;
+//    binpicking_operation.error = 0;
+//    binpicking_operation.info = 0;
+//
+//    res.operations.push_back(binpicking_operation);
 
     return true;
-  }
+ /* }
   else
   {
-    return false;
-  }
+    return true;
+  }*/
 }
 
 bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations::Request& req,
@@ -627,6 +879,7 @@ int main(int argc, char** argv)
   // Start Async Spinner with 2 threads
   ros::AsyncSpinner spinner(2);
   spinner.start();
+  emulator.binPickingLoop();
   ros::waitForShutdown();
 
   return EXIT_SUCCESS;
