@@ -1,0 +1,6 @@
+virtual_robot:
+  start_pose: [0, -0.2, 0.2, 0, 1.57, 0 ]
+  end_pose: [0, 0, -0.2, 0.2, -1.57, 0 ]
+  log_path: "/home/controller/catkin_ws/"
+  max_attempts: 5000 #Ak binpose emulator neprejde vsetky polohy, tak toto ho zastavi
+
