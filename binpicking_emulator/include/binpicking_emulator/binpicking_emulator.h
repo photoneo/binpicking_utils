@@ -68,7 +68,8 @@ private:
 
 
     void publishResult();
-    void createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time);
+    void writeToFile();
+    void createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time, const geometry_msgs::Pose pose);
 
 
     int num_of_joints_;
@@ -80,7 +81,7 @@ private:
   // Functions
   void visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory);
 
-    std::ofstream outfile_time_;
+    std::ofstream outfile_fails_;
 
     ros::Publisher statistics_pub_;
 

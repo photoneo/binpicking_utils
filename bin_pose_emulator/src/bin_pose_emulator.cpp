@@ -220,6 +220,8 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
 
 void BinPoseEmulator::visualizeBin(void)
 {
+
+    ROS_ERROR("bin");
   uint32_t shape = visualization_msgs::Marker::CUBE;
   visualization_msgs::Marker marker;
 
@@ -303,24 +305,4 @@ void BinPoseEmulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
                                         "base_link", "current_goal"));
 }
 
-int main(int argc, char* argv[])
-{
-  ros::init(argc, argv, "bin_pose_emulator");
-  ros::NodeHandle nh;
 
-  // Get config filepath from ROS Param server
-  std::string filepath;
-  nh.getParam("filepath", filepath);
-
-  // Create emulator object
-  BinPoseEmulator emulator(&nh, filepath);
-
-  // Advertise service
-  ros::ServiceServer service =
-      nh.advertiseService("bin_pose", &BinPoseEmulator::callback, &emulator);
-
-  ROS_WARN("creating service");
-  ros::spin();
-
-  return EXIT_SUCCESS;
-}

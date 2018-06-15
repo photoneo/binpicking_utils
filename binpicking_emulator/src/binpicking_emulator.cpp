@@ -19,7 +19,7 @@ limitations under the License.
 using namespace pho_robot_loader;
 
 BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_index_(0)
-        , outfile_time_("/home/controller/catkin_ws/stomp_test_time.txt"), log_path_("/home/controller/catkin_ws")
+        , outfile_fails_("/home/controller/catkin_ws/fails.txt"), log_path_("/home/controller/catkin_ws")
 {
   // Initialize Moveit group
   group_.reset(new moveit::planning_interface::MoveGroupInterface("manipulator"));
@@ -126,6 +126,13 @@ void BinpickingEmulator::binPickingLoop(){
     // Get current state
     robot_state::RobotState current_state(*group_->getCurrentState());
 
+    current_state.setJointGroupPositions(
+            "manipulator", start_pose_from_robot_);
+    group_->setStartState(current_state);
+
+   // group_->plan(to_approach_pose);
+  //  group_->execute(to_approach_pose);
+
     while (ros::ok()) {
 
         // Set Start state
@@ -164,13 +171,14 @@ void BinpickingEmulator::binPickingLoop(){
 
         // Find IK in approach pose
         //---------------------------------------------------
-        found_ik = kinematic_state->setFromIK(joint_model_group, approach_pose, 10, 0.1);
-        kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+        found_ik = kinematic_state->setFromIK(joint_model_group, grasp_pose, 10, 0.1);
+
 
         double time = 0;
         if (found_ik) {
 
             ROS_WARN("found IK");
+            kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
             //---------------------------------------------------
             // Plan trajectory from current to approach pose
             //---------------------------------------------------
@@ -181,7 +189,7 @@ void BinpickingEmulator::binPickingLoop(){
             success_approach = group_->plan(to_approach_pose);
             time = ros::Time::now().toSec() - time;
 
-            createStatistics(success_approach, to_approach_pose, time);
+            createStatistics(success_approach, to_approach_pose, time, grasp_pose);
         }
 
         if (success_approach)
@@ -196,6 +204,7 @@ void BinpickingEmulator::binPickingLoop(){
 
             // Visualize trajectory in RViz
             visualizeTrajectory(to_approach_pose.trajectory_.joint_trajectory);
+            continue;
         } else {
             //sleep(5);
             continue;
@@ -265,11 +274,11 @@ void BinpickingEmulator::binPickingLoop(){
             bool success_end = group_->plan(to_end_pose);
             time = ros::Time::now().toSec() - time;
 
-            createStatistics(success_end, to_end_pose, time);
+           // createStatistics(success_end, to_end_pose, time);
     }
 }
 
-void BinpickingEmulator::createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time){
+void BinpickingEmulator::createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time, const geometry_msgs::Pose pose){
 
     num_of_attempt_++;
 
@@ -290,14 +299,28 @@ void BinpickingEmulator::createStatistics(bool success, moveit::planning_interfa
     average_joint_diff_ = sum_joint_diff_ / num_of_success_;
 
     } else {
+
+        outfile_fails_  << pose << "\n";
+
+        //outfile_fails_<< num_of_fails_ << ": " << pose << "\n";
         num_of_fails_++;
+
     }
 
     ROS_INFO("attempt %d, average time %f, average joint diff %f, fails %d", num_of_attempt_, average_time_, average_joint_diff_, num_of_fails_);
 
+    publishResult();
+    writeToFile();
+
+
     if (num_of_attempt_ == max_attempts_) {
 
-        publishResult();
+        //writeToFile();
+        num_of_success_ = 0;
+        num_of_attempt_ = 0;
+        num_of_fails_ = 0;
+        sum_joint_diff_ = 0;
+        sum_time_ = 0;
         ros::shutdown();
 
     }
@@ -311,21 +334,20 @@ void BinpickingEmulator::publishResult() {
     msg.average_joint_diff = average_joint_diff_;
     msg.average_time = average_time_;
 
-    static int num_of_callbacks = 0;
+    statistics_pub_.publish(msg);
+}
 
-    std::to_string(num_of_callbacks);
+void BinpickingEmulator::writeToFile() {
 
-    std::ofstream outfile_results(log_path_ + "/results_" + std::to_string(num_of_callbacks++) + ".txt");
+    stomp_param_changer::statistics msg;
+    msg.num_of_attempts = num_of_attempt_;
+    msg.num_of_fails = num_of_fails_;
+    msg.average_joint_diff = average_joint_diff_;
+    msg.average_time = average_time_;
+
+    std::ofstream outfile_results(log_path_ + "/stomp_results.txt");
 
     outfile_results << msg << "\n";
-
-    statistics_pub_.publish(msg);
-
-    num_of_success_ = 0;
-    num_of_attempt_ = 0;
-    num_of_fails_ = 0;
-    sum_joint_diff_ = 0;
-    sum_time_ = 0;
 }
 
 bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Request& req,

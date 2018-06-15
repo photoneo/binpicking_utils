@@ -1,0 +1,23 @@
+<launch>
+
+  <!--TODO prec test parameter pre MISA-->
+  <arg name="test" default="true"/>
+
+  <!--Tu je ulozena start a end pose-->
+  <rosparam file="$(find binpicking_emulator)/config/virtual_robot_config.yaml" command="load" />
+
+ <!--Pouzi si nejaky vygenerovany pho_global_moveit_config-->
+ <include file="$(find pho_global_moveit_config)/launch/demo.launch" />
+
+  <!--TODO prec test parameter pre MISA-->
+  <!--==========Bin pose emulator for test================-->
+  <param name="filepath" value="$(find bin_pose_emulator)/config/bin_pose_emulator_abb_120.yaml" if="$(arg test)"/>
+  <include file="$(find binpicking_emulator)/launch/binpicking_emulator.launch" if="$(arg test)" />
+
+  <!--Ak by si chcel generovat tie zelene collision object - ale to asi nepotrebujes-->
+  <!--==========Collision Object publisher ================-->
+  <!--param name="collision_objects_list_filepath" value="$(find binpicking_simple_utils)/collision_objects/config/list_of_collision_objects.yaml"/>
+  <node pkg="binpicking_simple_utils" name="collision_object_publisher" type="collision_object_publisher" output="screen"/-->
+  <!--====================================================-->
+
+</launch>

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(bin_pose_emulator)
+add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED
   COMPONENTS
@@ -16,14 +17,27 @@ include_directories(
 
 add_executable(
   ${PROJECT_NAME}
-  src/bin_pose_emulator.cpp)
+  src/bin_pose_emulator.cpp
+        src/bin_pose_emulator_node.cpp)
+
+add_executable(
+        visualizer
+        src/visualizer.cpp
+        src/bin_pose_emulator.cpp)
   
 add_dependencies(bin_pose_emulator ${catkin_EXPORTED_TARGETS})
+add_dependencies(visualizer ${catkin_EXPORTED_TARGETS})
+
 
 target_link_libraries(
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
   yaml-cpp)
+
+target_link_libraries(
+        visualizer
+        ${catkin_LIBRARIES}
+        yaml-cpp)
 
 # binaries
 install(TARGETS

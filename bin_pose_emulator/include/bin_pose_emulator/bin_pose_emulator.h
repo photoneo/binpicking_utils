@@ -68,15 +68,17 @@ public:
   bool callback(bin_pose_msgs::bin_pose::Request& req,
                 bin_pose_msgs::bin_pose::Response& res);
 
+protected:
+    bool parseConfig(std::string filepath);
+    void visualizeBin(void);
+    void visualizePose(geometry_msgs::Pose grasp_pose,
+                       geometry_msgs::Pose approach_pose);
+    void broadcastPoseTF(geometry_msgs::Pose grasp_pose);
+
 private:
   double randGen(double fMin, double fMax);
   bool getNextPose(geometry_msgs::Pose *pose);
-  bool parseConfig(std::string filepath);
 
-  void visualizeBin(void);
-  void visualizePose(geometry_msgs::Pose grasp_pose,
-                      geometry_msgs::Pose approach_pose);
-  void broadcastPoseTF(geometry_msgs::Pose grasp_pose);
 
   ros::Publisher marker_pub_;
 

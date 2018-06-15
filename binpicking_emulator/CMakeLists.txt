@@ -13,7 +13,8 @@ find_package(catkin REQUIRED
     moveit_core
     moveit_ros_planning_interface
     tf
-    stomp_param_changer )
+    stomp_param_changer
+    )
 
 catkin_package(
   INCLUDE_DIRS include
