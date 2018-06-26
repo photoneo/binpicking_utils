@@ -22,6 +22,7 @@ limitations under the License.
 
 #include <boost/algorithm/string/classification.hpp> // Include boost::for is_any_of
 #include <boost/algorithm/string/split.hpp> // Include for boost::split
+#include <visualization_msgs/MarkerArray.h>
 
 class Visualizer : public BinPoseEmulator{
 public:
@@ -29,6 +30,23 @@ public:
     Visualizer(ros::NodeHandle* nh, std::string filepath) : BinPoseEmulator(nh, filepath) {
 
         this->filepath_config_ = filepath;
+
+        /*uint32_t shape = visualization_msgs::Marker::ARROW;
+
+        marker_.ns = "bin";
+        marker_.id = 1;
+        marker_.type = shape;
+        marker_.action = visualization_msgs::Marker::ADD;
+
+        marker_.scale.x = 0.01;
+        marker_.scale.y = 0.02;
+        marker_.scale.z = 0.05;
+
+        marker_.color.r = 0.9f;
+        marker_.color.g = 0.9f;
+        marker_.color.b = 0.0f;
+        marker_.color.a = 1.0;*/
+
     }
 
     void visualize(){
@@ -42,7 +60,7 @@ public:
 
         infile.open("/home/controller/catkin_ws/fails.txt",  std::ifstream::in);
 
-        while (!infile.eof()){
+        while (!infile.eof()) {
 
             //position
             std::getline(infile, str);
@@ -71,15 +89,14 @@ public:
             approach = pose;
             approach.position.z += 0.1;
             visualizeBin();
-            visualizePose(pose, approach);
-            sleep(2);
-        }
+            visualizePose(pose, approach, true);
 
+        }
     }
 
 private:
-    std::string filepath_config_;
-    std::string filepath_fails_;
+
+    //visualization_msgs::Marker marker_;
 
 
     double getDouble(std::string str){
@@ -87,6 +104,31 @@ private:
         boost::split(words, str, boost::is_any_of(":"), boost::token_compress_on);
         return (double)atof(words[1].c_str());
     }
+
+   /*void visualizePose(){
+
+        marker_.header.frame_id = "/base_link";
+        marker_.header.stamp = ros::Time::now();
+      //  marker.lifetime = ros::Duration();
+      //  marker_pub_.publish(marker);
+    }
+
+    void addPose(geometry_msgs::Pose grasp_pose,
+                                  geometry_msgs::Pose approach_pose)
+    {
+        geometry_msgs::Point approach_point;
+        approach_point.x = approach_pose.position.x;
+        approach_point.y = approach_pose.position.y;
+        approach_point.z = approach_pose.position.z;
+
+        geometry_msgs::Point grasp_point;
+        grasp_point.x = grasp_pose.position.x;
+        grasp_point.y = grasp_pose.position.y;
+        grasp_point.z = grasp_pose.position.z;
+
+        marker_.points.push_back(approach_point);
+        marker_.points.push_back(grasp_point);
+    }*/
 
 };
 

@@ -221,7 +221,6 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
 void BinPoseEmulator::visualizeBin(void)
 {
 
-    ROS_ERROR("bin");
   uint32_t shape = visualization_msgs::Marker::CUBE;
   visualization_msgs::Marker marker;
 
@@ -251,7 +250,7 @@ void BinPoseEmulator::visualizeBin(void)
 }
 
 void BinPoseEmulator::visualizePose(geometry_msgs::Pose grasp_pose,
-                              geometry_msgs::Pose approach_pose)
+                              geometry_msgs::Pose approach_pose, bool multiArray)
 {
   uint32_t shape = visualization_msgs::Marker::ARROW;
   visualization_msgs::Marker marker;
@@ -260,7 +259,13 @@ void BinPoseEmulator::visualizePose(geometry_msgs::Pose grasp_pose,
   marker.header.stamp = ros::Time::now();
 
   marker.ns = "bin";
-  marker.id = 1;
+  if (multiArray){
+
+    static int i = 1;
+    marker.id = i++;
+  } else {
+    marker.id = 1;
+  }
   marker.type = shape;
   marker.action = visualization_msgs::Marker::ADD;
 
@@ -289,6 +294,7 @@ void BinPoseEmulator::visualizePose(geometry_msgs::Pose grasp_pose,
   marker.lifetime = ros::Duration();
   marker_pub_.publish(marker);
 }
+
 
 void BinPoseEmulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
 {
