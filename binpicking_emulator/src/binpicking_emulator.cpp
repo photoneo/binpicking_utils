@@ -18,8 +18,10 @@ limitations under the License.
 
 using namespace pho_robot_loader;
 
-BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_index_(0)
-        , outfile_fails_("/home/controller/catkin_ws/fails.txt"), log_path_("/home/controller/catkin_ws")
+BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_index_(0),
+                                                              outfile_fails_stomp_("/home/controller/catkin_ws/stomp_fails.txt"),
+                                                              outfile_fails_ik_("/home/controller/catkin_ws/ik_fails.txt"),
+                                                              log_path_("/home/controller/catkin_ws")
 {
   // Initialize Moveit group
   group_.reset(new moveit::planning_interface::MoveGroupInterface("manipulator"));
@@ -96,7 +98,6 @@ bool BinpickingEmulator::binPickingScanCallback(std_srvs::Trigger::Request& req,
     return true;
 }
 
-
 void BinpickingEmulator::binPickingLoop(){
 
     bool use_linear_path = false;
@@ -122,6 +123,8 @@ void BinpickingEmulator::binPickingLoop(){
     robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
     kinematic_state->setToDefaultValues();
     const robot_state::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("manipulator");
+    planning_scene::PlanningScene planning_scene(kinematic_model);
+    moveit::core::GroupStateValidityCallbackFn groupStateValidityCallbackFn = boost::bind(&BinpickingEmulator::isIKSolutionValid,this, &planning_scene,_1,_2,_3);
 
     // Get current state
     robot_state::RobotState current_state(*group_->getCurrentState());
@@ -129,9 +132,6 @@ void BinpickingEmulator::binPickingLoop(){
     current_state.setJointGroupPositions(
             "manipulator", start_pose_from_robot_);
     group_->setStartState(current_state);
-
-   // group_->plan(to_approach_pose);
-  //  group_->execute(to_approach_pose);
 
     while (ros::ok()) {
 
@@ -157,8 +157,6 @@ void BinpickingEmulator::binPickingLoop(){
         } else {
             // Dosiahol vsetky party v bin-e
             publishResult();
-           // sleep(2);
-           // continue;
             ros::shutdown();
         }
 
@@ -168,21 +166,22 @@ void BinpickingEmulator::binPickingLoop(){
         double success_grasp = 0;
         double success_deapproach = 0;
 
-
         // Find IK in approach pose
         //---------------------------------------------------
-        found_ik = kinematic_state->setFromIK(joint_model_group, grasp_pose, 10, 0.1);
-
+        found_ik = kinematic_state->setFromIK(joint_model_group, grasp_pose, 10, 0.1, groupStateValidityCallbackFn);
 
         double time = 0;
         if (found_ik) {
 
             ROS_WARN("found IK");
             kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+           // ROS_INFO_STREAM(joint_values);
+            for (auto joint : joint_values){
+                ROS_INFO("%f", joint);
+            }
             //---------------------------------------------------
             // Plan trajectory from current to approach pose
             //---------------------------------------------------
-
 
             double time = ros::Time::now().toSec();
             group_->setJointValueTarget(joint_values);
@@ -190,6 +189,11 @@ void BinpickingEmulator::binPickingLoop(){
             time = ros::Time::now().toSec() - time;
 
             createStatistics(success_approach, to_approach_pose, time, grasp_pose);
+        } else {
+
+            ROS_ERROR("IK failed");
+            outfile_fails_ik_  << grasp_pose << "\n";
+
         }
 
         if (success_approach)
@@ -278,6 +282,17 @@ void BinpickingEmulator::binPickingLoop(){
     }
 }
 
+bool BinpickingEmulator::isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
+                                           robot_state::RobotState* state,
+                                           const robot_model::JointModelGroup* jmg,
+                                           const double* ik_solution)
+{
+
+    state->setJointGroupPositions(jmg, ik_solution);
+    state->update();
+    return (!planning_scene || !planning_scene->isStateColliding(*state, jmg->getName()));
+}
+
 void BinpickingEmulator::createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time, const geometry_msgs::Pose pose){
 
     num_of_attempt_++;
@@ -300,7 +315,7 @@ void BinpickingEmulator::createStatistics(bool success, moveit::planning_interfa
 
     } else {
 
-        outfile_fails_  << pose << "\n";
+        outfile_fails_stomp_  << pose << "\n";
 
         //outfile_fails_<< num_of_fails_ << ": " << pose << "\n";
         num_of_fails_++;

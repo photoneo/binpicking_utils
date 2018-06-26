@@ -40,6 +40,8 @@ limitations under the License.
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
+#include <moveit/planning_scene_monitor/planning_scene_monitor.h>
+
 
 #include <stomp_param_changer/statistics.h>
 
@@ -57,6 +59,10 @@ public:
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
     void binPickingLoop();
+    bool isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
+                           robot_state::RobotState* state,
+                           const robot_model::JointModelGroup* jmg,
+                           const double* ik_solution);
 
 private:
   // Variables
@@ -81,7 +87,8 @@ private:
   // Functions
   void visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory);
 
-    std::ofstream outfile_fails_;
+    std::ofstream outfile_fails_stomp_;
+    std::ofstream outfile_fails_ik_;
 
     ros::Publisher statistics_pub_;
 
