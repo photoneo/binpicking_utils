@@ -139,6 +139,22 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     // Visualize trajectory in RViz
     visualizeTrajectory(to_approach_pose.trajectory_.joint_trajectory);
   }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
+  }
 
   //---------------------------------------------------
   // Plan trajectory from approach to grasp pose
@@ -162,6 +178,23 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_grasp_pose.joint_trajectory);
+
+  }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
   }
 
   //---------------------------------------------------
@@ -182,10 +215,27 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     // SetStartState instead of trajectory execution
     current_state.setJointGroupPositions(
         "manipulator", to_deapproach_pose.joint_trajectory.points[deapproach_traj_size - 1].positions);
+
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_deapproach_pose.joint_trajectory);
+  }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
   }
 
   //---------------------------------------------------
@@ -205,6 +255,22 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_end_pose.trajectory_.joint_trajectory);
+  }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
   }
 
   //---------------------------------------------------
@@ -287,10 +353,6 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     return true;
-  }
-  else
-  {
-    return false;
   }
 }
 
@@ -342,11 +404,27 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
 
     // SetStartState instead of trajectory execution
     current_state.setJointGroupPositions(
-          "manipulator", to_approach_pose.trajectory_.joint_trajectory.points[approach_traj_size - 1].positions);
+        "manipulator", to_approach_pose.trajectory_.joint_trajectory.points[approach_traj_size - 1].positions);
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_approach_pose.trajectory_.joint_trajectory);
+  }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
   }
 
   //---------------------------------------------------
@@ -371,6 +449,23 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_grasp_pose.joint_trajectory);
+
+  }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
   }
 
   //---------------------------------------------------
@@ -391,10 +486,27 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     // SetStartState instead of trajectory execution
     current_state.setJointGroupPositions(
         "manipulator", to_deapproach_pose.joint_trajectory.points[deapproach_traj_size - 1].positions);
+
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_deapproach_pose.joint_trajectory);
+  }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
   }
 
   //---------------------------------------------------
@@ -408,11 +520,28 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     end_traj_size = to_end_pose.trajectory_.joint_trajectory.points.size();
 
     // SetStartState instead of trajectory execution
-    current_state.setJointGroupPositions("manipulator", to_end_pose.trajectory_.joint_trajectory.points[end_traj_size - 1].positions);
+    current_state.setJointGroupPositions("manipulator",
+                                         to_end_pose.trajectory_.joint_trajectory.points[end_traj_size - 1].positions);
     group_->setStartState(current_state);
 
     // Visualize trajectory in RViz
     visualizeTrajectory(to_end_pose.trajectory_.joint_trajectory);
+  }
+  else
+  {
+    photoneo_msgs::operation binpicking_operation;
+
+    // Operation 1 - Error
+    binpicking_operation.operation_type = OPERATION::TYPE::ERROR;
+
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = ERROR::PLANNING_FAILED;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    return true;
   }
 
   //---------------------------------------------------
@@ -425,13 +554,13 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
       binpicking_operation.points.push_back(to_approach_pose.trajectory_.joint_trajectory.points[i]);
 
-    binpicking_operation.gripper = GRIPPER::OPEN;
+    binpicking_operation.gripper = 0;
     binpicking_operation.error = 0;
     binpicking_operation.info = 0;
 
@@ -453,7 +582,7 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     for (int i = 0; i < grasp_traj_size; i++)
       binpicking_operation.points.push_back(to_grasp_pose.joint_trajectory.points[i]);
 
-    binpicking_operation.gripper = GRIPPER::OPEN;
+    binpicking_operation.gripper = 0;
     binpicking_operation.error = 0;
     binpicking_operation.info = 0;
 
@@ -469,36 +598,32 @@ bool BinpickingEmulator::binPickingScanAndTrajCallback(photoneo_msgs::operations
     res.operations.push_back(binpicking_operation);
 
     // Operation 5 - Deapproach trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
       binpicking_operation.points.push_back(to_deapproach_pose.joint_trajectory.points[i]);
 
-    binpicking_operation.gripper = GRIPPER::CLOSE;
+    binpicking_operation.gripper = 0;
     binpicking_operation.error = 0;
     binpicking_operation.info = 0;
 
     res.operations.push_back(binpicking_operation);
 
     // Operation 6 - End Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < end_traj_size; i++)
       binpicking_operation.points.push_back(to_end_pose.trajectory_.joint_trajectory.points[i]);
 
-    binpicking_operation.gripper = GRIPPER::CLOSE;
+    binpicking_operation.gripper = 0;
     binpicking_operation.error = 0;
     binpicking_operation.info = 0;
 
     res.operations.push_back(binpicking_operation);
 
     return true;
-  }
-  else
-  {
-    return false;
   }
 }
 
