@@ -1,10 +1,10 @@
 #bin_center_x: 1.28
-bin_center_x: 0.42
+bin_center_x: 1.25
 bin_center_y: 0.0
-bin_center_z: 0.2
+bin_center_z: 0.6
 
-bin_size_x: 0.21
-bin_size_y: 0.45
+bin_size_x: 0.95
+bin_size_y: 1.15
 bin_size_z: 0.3
 
 roll_default: 0

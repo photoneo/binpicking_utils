@@ -171,6 +171,15 @@ bool BinPoseEmulator::getNextPose(geometry_msgs::Pose *pose) {
   pose->orientation.z = grasp_orientation.getZ();
   pose->orientation.w = grasp_orientation.getW();
 
+//  pose->position.x = 1.475;
+//  pose->position.y = -0.175;
+//  pose->position.z = 0.45;
+
+//  pose->orientation.x = 0.248386;
+//  pose->orientation.y = 0.945193;
+//  pose->orientation.z = 0.197716;
+//  pose->orientation.w = -0.0763054;
+
   return false;
 }
 

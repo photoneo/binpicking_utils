@@ -41,9 +41,9 @@ limitations under the License.
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-
-
 #include <stomp_param_changer/statistics.h>
+
+#include "binpicking_emulator/path_length_test.h"
 
 class BinpickingEmulator
 {
@@ -75,7 +75,7 @@ private:
 
     void publishResult();
     void writeToFile();
-    void createStatistics(bool success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time, const geometry_msgs::Pose pose);
+    void createStatistics(moveit::planning_interface::MoveItErrorCode success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time, const geometry_msgs::Pose pose);
 
 
     int num_of_joints_;
@@ -89,6 +89,7 @@ private:
 
     std::ofstream outfile_fails_stomp_;
     std::ofstream outfile_fails_ik_;
+    std::ofstream outfile_joint_diff_;
 
     ros::Publisher statistics_pub_;
 
@@ -98,10 +99,15 @@ private:
     int num_of_fails_;
     double sum_time_;
     double sum_joint_diff_;
+    double sum_traj_size_;
     double average_joint_diff_;
+    double average_traj_size_;
+    int ik_fails_;
+    double success_rate_;
+    int bad_trajectory_;
 
     std::string log_path_;
-    int max_attempts_;
+    PathLengthTest path_length_test_;
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H

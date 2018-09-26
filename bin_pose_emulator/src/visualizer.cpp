@@ -29,8 +29,6 @@ public:
 
     Visualizer(ros::NodeHandle* nh, std::string filepath) : BinPoseEmulator(nh, filepath) {
 
-        this->filepath_config_ = filepath;
-
         /*uint32_t shape = visualization_msgs::Marker::ARROW;
 
         marker_.ns = "bin";
