@@ -12,19 +12,19 @@ PathLengthTest::PathLengthTest(){
 
     save_log_server_ = nh.advertiseService("/binpicking_emulator/save_log", &PathLengthTest::saveLogCallback, this);
 
-    fk_srv_.request.header.frame_id = "tool1";
-    fk_srv_.request.header.stamp = ros::Time::now();
+    fk_srv_.request.header.frame_id = "base_link";
     fk_srv_.request.fk_link_names = {"tool1"};
     fk_srv_.request.robot_state.joint_state.name = {"joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
 }
 
-bool PathLengthTest::computeFk(const std::vector<double> start_pose_from_robot_) {
+bool PathLengthTest::computeFk(const std::vector<double> start_pose_from_robot_, geometry_msgs::Point &computed_fk) {
 
+    fk_srv_.request.header.stamp = ros::Time::now();
     fk_srv_.request.robot_state.joint_state.position = start_pose_from_robot_;
 
     if (fk_client_.call(fk_srv_)){
         if (fk_srv_.response.error_code.val == 1){
-            start_point_ = fk_srv_.response.pose_stamped[0].pose.position;
+            computed_fk = fk_srv_.response.pose_stamped[0].pose.position;
             return true;
 
         } else{
@@ -45,13 +45,7 @@ double PathLengthTest::getDistance(const geometry_msgs::Point start, const geome
 
 bool PathLengthTest::setStart(const std::vector<double> start_pose_from_robot_) {
 
-    moveit_msgs::GetPositionFK fk_req;
-
-    fk_req.request.header.frame_id = "tool1";
-    fk_req.request.header.stamp = ros::Time::now();
-    fk_req.request.fk_link_names = {"tool1"};
-    fk_req.request.robot_state.joint_state.name = {"joint_1", "joint_2", "joint_3", "joint_4", "joint_5", "joint_6"};
-    return computeFk(start_pose_from_robot_);
+    return computeFk(start_pose_from_robot_, start_point_);
 }
 
 void PathLengthTest::addPoint(const geometry_msgs::Pose pose) {
@@ -63,17 +57,17 @@ void PathLengthTest::addPoint(const geometry_msgs::Pose pose) {
 
 bool PathLengthTest::addPath(const moveit::planning_interface::MoveGroupInterface::Plan &plan){
 
-    geometry_msgs::Point last_point;
+    geometry_msgs::Point last_point, new_point;
     double path_lenth = 0;
 
     last_point = start_point_;
 
-    for (int i = 1; i < plan.trajectory_.joint_trajectory.points.size(); i++) {
+    for (int i = 0; i < plan.trajectory_.joint_trajectory.points.size(); i++) {
 
-        if (computeFk(plan.trajectory_.joint_trajectory.points[i].positions)){
+        if (computeFk(plan.trajectory_.joint_trajectory.points[i].positions, new_point)){
 
-            path_lenth += getDistance(last_point, fk_srv_.response.pose_stamped[0].pose.position);
-            last_point = fk_srv_.response.pose_stamped[0].pose.position;
+            path_lenth += getDistance(last_point, new_point);
+            last_point = new_point;
         }
     }
 

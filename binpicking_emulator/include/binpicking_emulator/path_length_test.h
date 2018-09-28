@@ -26,7 +26,7 @@ private:
     geometry_msgs::Point start_point_;
     moveit_msgs::GetPositionFK fk_srv_;
 
-    bool computeFk(const std::vector<double> start_pose_from_robot_);
+    bool computeFk(const std::vector<double> start_pose_from_robot_, geometry_msgs::Point &computed_fk);
     double getDistance(const geometry_msgs::Point start, const geometry_msgs::Point end);
 
     bool saveLogCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);

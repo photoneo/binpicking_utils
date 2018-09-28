@@ -53,6 +53,7 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
   // Set move group params
   //group_->setPlannerId("RRTConnectkConfigDefault");
   group_->setGoalTolerance(0.001);
+  //group_->setNumPlanningAttempts(3);
   sum_time_ = 0;
   sum_traj_size_ = 0;
   num_of_attempt_ = 0;
