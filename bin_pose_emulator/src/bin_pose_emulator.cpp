@@ -35,7 +35,7 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
                         bin_pose_msgs::bin_pose::Response& res)
 {
 
-  ROS_WARN("BIN POSE EMULATOR: callback!");
+ // ROS_WARN("BIN POSE EMULATOR: callback!");
 
   //-----------------------------------------------------------------------------------------
   // Generate random Grasp pose

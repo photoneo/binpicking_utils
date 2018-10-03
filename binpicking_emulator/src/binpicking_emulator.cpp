@@ -168,7 +168,7 @@ void BinpickingEmulator::binPickingLoop(){
             ros::ServiceClient client = nh.serviceClient<std_srvs::Trigger>("/binpicking_emulator/save_log");
             std_srvs::Trigger srv;
             sleep(1);
-            client.call(srv);
+            path_length_test_.saveLog();
             ros::shutdown();
         }
 
@@ -185,7 +185,6 @@ void BinpickingEmulator::binPickingLoop(){
 
             ROS_WARN("found IK");
             kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-            path_length_test_.addPoint(grasp_pose);
 
             //---------------------------------------------------
             // Plan trajectory from current to approach pose
@@ -235,27 +234,37 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
 
     num_of_attempt_++;
     double sum_joint_diff_swap = 0;
+    std::vector<double> joints_diff;
+    joints_diff.resize(6, 0);
 
-    path_length_test_.addPath(plan);
     if (success){
     for (int i = 1; i < plan.trajectory_.joint_trajectory.points.size(); i++) {
         for (int j = 0; j < 6; j++) {
+            joints_diff[j] += fabs(plan.trajectory_.joint_trajectory.points[i].positions[j] -
+                             plan.trajectory_.joint_trajectory.points[i - 1].positions[j]);
             sum_joint_diff_swap += fabs(plan.trajectory_.joint_trajectory.points[i].positions[j] -
                                         plan.trajectory_.joint_trajectory.points[i - 1].positions[j]);
         }
     }
 
-    sum_joint_diff_ += sum_joint_diff_swap;
+    for (int i = 0; i < joints_diff.size(); i++){
+        sum_joint_diff_ += joints_diff[i];
+        path_length_test_.addJoint(i, joints_diff[i]);
+    }
+
+    path_length_test_.addPoint(pose);
+    path_length_test_.addPath(plan);
+
+    //sum_joint_diff_ += sum_joint_diff_swap;
     sum_time_ += time;
     sum_traj_size_ += plan.trajectory_.joint_trajectory.points.size();
-
     num_of_success_++;
     average_time_ = sum_time_ / num_of_success_;
     average_joint_diff_ = sum_joint_diff_ / num_of_success_;
     average_traj_size_ = sum_traj_size_ / num_of_attempt_;
     success_rate_ = (double)(ik_fails_ + num_of_fails_) / (num_of_attempt_ + ik_fails_);
 
-    outfile_joint_diff_ << " joint diff: " << sum_joint_diff_swap << " trajectory size: " << plan.trajectory_.joint_trajectory.points.size() << "\n";
+    outfile_joint_diff_ << num_of_success_ << " joint diff: " << sum_joint_diff_swap << " trajectory size: " << plan.trajectory_.joint_trajectory.points.size() << "\n";
 
     if (sum_joint_diff_swap > 20.0){
         outfile_joint_diff_ << pose << "\n";
@@ -300,6 +309,9 @@ void BinpickingEmulator::writeToFile() {
     std::ofstream outfile_results(log_path_ + "/stomp_results.txt");
 
     outfile_results << msg << "\n";
+    if (num_of_attempt_ % 100 == 0){
+        path_length_test_.saveLog();
+    }
 }
 
 bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Request& req,

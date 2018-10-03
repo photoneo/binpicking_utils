@@ -19,20 +19,27 @@ public:
     bool setStart(const std::vector<double> start_pose_from_robot_);
     void addPoint(const geometry_msgs::Pose pose);
     bool addPath(const moveit::planning_interface::MoveGroupInterface::Plan &plan);
+    void addJoint(int idx, double value);
+    bool saveLog();
 
 private:
     ros::ServiceServer save_log_server_;
     ros::ServiceClient fk_client_;
-    geometry_msgs::Point start_point_;
+    geometry_msgs::Pose start_pose_;
     moveit_msgs::GetPositionFK fk_srv_;
 
-    bool computeFk(const std::vector<double> start_pose_from_robot_, geometry_msgs::Point &computed_fk);
+    bool computeFk(const std::vector<double> start_pose_from_robot_, geometry_msgs::Pose &computed_fk);
     double getDistance(const geometry_msgs::Point start, const geometry_msgs::Point end);
+    double getAngle(const geometry_msgs::Quaternion start, const geometry_msgs::Quaternion end);
 
     bool saveLogCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
 
     std::vector<double> forward_distances_;
+    std::vector<double> forward_angles_;
     std::vector<double> path_distances_;
+    std::vector<double> path_angles_;
+    std::vector< std::vector<double> > joints_;
+
     std::mutex mutex_;
 };
 #endif //PROJECT_PATH_LENGTH_TEST_H
