@@ -45,9 +45,17 @@ limitations under the License.
 
 #include "binpicking_emulator/path_length_test.h"
 
+
 class BinpickingEmulator
 {
 public:
+    struct Waypoint{
+        bool is_linear;
+        bool is_joint_space;
+        geometry_msgs::Pose pose;
+        std::vector<double> end_joint_state;
+    };
+
   BinpickingEmulator(ros::NodeHandle* nh);
   ~BinpickingEmulator();
 
@@ -58,7 +66,9 @@ public:
   bool calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res);
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
+    void binPickingLoopSimpleTraj();
     void binPickingLoop();
+    bool makePlan(const geometry_msgs::Pose &pose, bool isLinear = false);
     bool isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
                            robot_state::RobotState* state,
                            const robot_model::JointModelGroup* jmg,
@@ -75,7 +85,7 @@ private:
 
     void publishResult();
     void writeToFile();
-    void createStatistics(moveit::planning_interface::MoveItErrorCode success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time, const geometry_msgs::Pose pose);
+    void createStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose);
 
 
     int num_of_joints_;
@@ -90,6 +100,8 @@ private:
     std::ofstream outfile_fails_stomp_;
     std::ofstream outfile_fails_ik_;
     std::ofstream outfile_joint_diff_;
+    std::ofstream outfile_points_;
+
 
     ros::Publisher statistics_pub_;
 
@@ -102,12 +114,17 @@ private:
     double sum_traj_size_;
     double average_joint_diff_;
     double average_traj_size_;
-    int ik_fails_;
+    int ik_fails_sum_;
     double success_rate_;
     int bad_trajectory_;
 
     std::string log_path_;
     PathLengthTest path_length_test_;
+
+    std::vector<int> ik_fails_;
+    std::vector<int> planner_fails_;
+    int point_id_;
+    geometry_msgs::Point last_point_;
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H

@@ -95,14 +95,14 @@ void PathLengthTest::addPoint(const geometry_msgs::Pose pose) {
    // sleep(1);
 }
 
-bool PathLengthTest::addPath(const moveit::planning_interface::MoveGroupInterface::Plan &plan){
+bool PathLengthTest::addPath(const trajectory_msgs::JointTrajectory &trajectory){
 
     geometry_msgs::Pose last_pose, new_pose;
     double path_lenth = 0, path_angle = 0;
 
     last_pose = start_pose_;
 
-    for (auto joint_state : plan.trajectory_.joint_trajectory.points){
+    for (auto joint_state : trajectory.points){
         if (computeFk(joint_state.positions, new_pose)) {
             path_lenth += getDistance(last_pose.position, new_pose.position);
             path_angle += getAngle(last_pose.orientation, new_pose.orientation);

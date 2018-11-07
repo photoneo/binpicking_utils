@@ -18,7 +18,7 @@ public:
     PathLengthTest();
     bool setStart(const std::vector<double> start_pose_from_robot_);
     void addPoint(const geometry_msgs::Pose pose);
-    bool addPath(const moveit::planning_interface::MoveGroupInterface::Plan &plan);
+    bool addPath(const trajectory_msgs::JointTrajectory &trajectory);
     void addJoint(int idx, double value);
     bool saveLog();
 

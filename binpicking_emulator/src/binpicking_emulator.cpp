@@ -23,6 +23,7 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
                                                               outfile_fails_ik_("/home/controller/catkin_ws/planner_test/ik_fails.txt"),
                                                               outfile_joint_diff_("/home/controller/catkin_ws/planner_test/joint_diff.txt"),
                                                               log_path_("/home/controller/catkin_ws/planner_test/"),
+                                                              outfile_points_("/home/controller/catkin_ws/planner_test/points.txt"),
                                                               path_length_test_()
 {
   // Initialize Moveit group
@@ -62,7 +63,7 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
   num_of_fails_ = 0;
   num_of_success_ = 0;
   success_rate_ = 0;
-  ik_fails_ = 0;
+  ik_fails_sum_ = 0;
   bad_trajectory_ = 0;
 
     // outfile_time_ = new std::ofstream();
@@ -101,11 +102,11 @@ bool BinpickingEmulator::binPickingScanCallback(std_srvs::Trigger::Request& req,
   ROS_INFO("BIN PICKING EMULATOR: Binpicking Scan Service called");
   ros::Duration(5).sleep();
   res.success = true;
-
+ // res.message = "NOT_INITIALIZED";
     return true;
 }
 
-void BinpickingEmulator::binPickingLoop(){
+void BinpickingEmulator::binPickingLoopSimpleTraj(){
 
     bool use_linear_path = false;
 
@@ -195,12 +196,12 @@ void BinpickingEmulator::binPickingLoop(){
             success_approach =  group_->plan(to_approach_pose);
             time = ros::Time::now().toSec() - time;
 
-            createStatistics(success_approach, to_approach_pose, time, grasp_pose);
+            createStatistics(success_approach, to_approach_pose.trajectory_.joint_trajectory, time, grasp_pose);
         } else {
 
             ROS_ERROR("IK failed");
             outfile_fails_ik_  << grasp_pose << "\n";
-            ik_fails_++;
+            ik_fails_sum_++;
         }
 
         if (success_approach)
@@ -219,6 +220,189 @@ void BinpickingEmulator::binPickingLoop(){
     }
 }
 
+void BinpickingEmulator::binPickingLoop(){
+    bool use_linear_path = false;
+
+    ros::NodeHandle nh;
+    nh.getParam("/virtual_robot/start_pose", start_pose_from_robot_);
+    nh.getParam("/virtual_robot/end_pose", end_pose_from_robot_);
+
+    nh.getParam("/virtual_robot/use_linear_path", use_linear_path);
+    nh.getParam("/virtual_robot/log_path", log_path_);
+
+    ROS_INFO("BIN PICKING EMULATOR: Binpicking Trajectory Service called");
+
+    robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+    robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
+    ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
+    robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
+    kinematic_state->setToDefaultValues();
+    const robot_state::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("manipulator");
+    planning_scene::PlanningScene planning_scene(kinematic_model);
+    moveit::core::GroupStateValidityCallbackFn groupStateValidityCallbackFn = boost::bind(&BinpickingEmulator::isIKSolutionValid,this, &planning_scene,_1,_2,_3);
+
+    // Get current state
+    robot_state::RobotState current_state(*group_->getCurrentState());
+
+    current_state.setJointGroupPositions(
+            "manipulator", start_pose_from_robot_);
+
+    if (!path_length_test_.setStart(start_pose_from_robot_)){
+        ROS_ERROR("Can not compute start pose fk");
+        ros::shutdown();
+    }
+
+    group_->setStartState(current_state);
+
+    point_id_ = 0;
+    last_point_.x = 0;
+    last_point_.y = 0;
+    last_point_.z = 0;
+
+
+    while (ros::ok()) {
+
+        // Set Start state
+        //---------------------------------------------------
+
+        current_state.setJointGroupPositions(
+                "manipulator", start_pose_from_robot_);
+        group_->setStartState(current_state);
+
+        // Get random bin picking pose from emulator
+        //---------------------------------------------------
+
+        bin_pose_msgs::bin_pose srv;
+        std::vector<Waypoint> waypoints(4);
+        ik_fails_.resize(waypoints.size());
+        planner_fails_.resize(waypoints.size());
+
+
+        if (bin_pose_client_.call(srv)) {
+            waypoints[0].pose = srv.response.approach_pose;
+            waypoints[0].is_linear = false;
+            waypoints[0].is_joint_space = false;
+            waypoints[1].pose = srv.response.grasp_pose;
+            waypoints[1].is_linear = true;
+            waypoints[1].is_joint_space = false;
+            waypoints[2].pose = srv.response.deapproach_pose;
+            waypoints[2].is_linear = true;
+            waypoints[2].is_joint_space = false;
+            waypoints[3].end_joint_state = end_pose_from_robot_;
+            waypoints[2].is_linear = false;
+            waypoints[3].is_joint_space = true;
+
+            if (last_point_.x != srv.response.grasp_pose.position.x || last_point_.y != srv.response.grasp_pose.position.y || last_point_.z != srv.response.grasp_pose.position.z){
+                outfile_points_ << point_id_ << ", " << last_point_.x << ", " << last_point_.y << ", " << last_point_.z << ", " << ik_fails_[1] << "\n";
+                point_id_++;
+                ik_fails_[1] = 0;
+                last_point_ = srv.response.grasp_pose.position;
+            }
+
+
+        } else {
+            // Dosiahol vsetky party v bin-e
+            publishResult();
+            ros::ServiceClient client = nh.serviceClient<std_srvs::Trigger>("/binpicking_emulator/save_log");
+            std_srvs::Trigger srv;
+            sleep(1);
+            path_length_test_.saveLog();
+            ros::shutdown();
+        }
+
+        std::vector<double> joint_values;
+        bool found_ik = false;
+        moveit::planning_interface::MoveItErrorCode success_approach = false;
+
+        if(!kinematic_state->setFromIK(joint_model_group, waypoints[1].pose, 5, 0.005,
+                                              groupStateValidityCallbackFn)){
+            ROS_ERROR("IK failed on point %d", point_id_);
+            outfile_fails_ik_ << "IK fail: " << 1 << "\n";
+            outfile_fails_ik_ << waypoints[1].pose << "\n";
+            ik_fails_sum_++;
+            ik_fails_[1]++;
+            continue;
+        }
+
+//        for (int i = 0; i < waypoints.size(); i++) {
+//
+//            if (waypoints[i].is_joint_space){
+//                found_ik = true;
+//            } else {
+//                // Find IK in approach pose
+//                //---------------------------------------------------
+//                found_ik = kinematic_state->setFromIK(joint_model_group, waypoints[i].pose, 5, 0.005,
+//                                                      groupStateValidityCallbackFn);
+//            }
+//            double time = 0;
+//            if (found_ik) {
+//
+//                //ROS_WARN("found IK");
+//
+//                if (!waypoints[i].is_joint_space) {
+//                    kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+//                    group_->setJointValueTarget(joint_values);
+//
+//                } else{
+//                    group_->setJointValueTarget(waypoints[i].end_joint_state);
+//
+//                }
+//                //---------------------------------------------------
+//                // Plan trajectory from current to approach pose
+//                //---------------------------------------------------
+//
+//                moveit_msgs::RobotTrajectory trajectory;
+//                double time = ros::Time::now().toSec();
+//
+//                if (waypoints[i].is_linear){
+//                    std::vector<geometry_msgs::Pose> linear_waypoints;
+//                    linear_waypoints.push_back(waypoints[i - 1].pose);
+//                    linear_waypoints.push_back(waypoints[i].pose);
+//                    success_approach = group_->computeCartesianPath(linear_waypoints, 0.02, 0, trajectory, false);
+//                } else{
+//                    moveit::planning_interface::MoveGroupInterface::Plan plan;
+//                    double time = ros::Time::now().toSec();
+//                    success_approach = group_->plan(plan);
+//                    trajectory = plan.trajectory_;
+//                }
+//
+//                time = ros::Time::now().toSec() - time;
+//                createStatistics(success_approach, trajectory.joint_trajectory, time, waypoints[i].pose);
+//
+//                if (success_approach) {
+//
+//                    // Get trajectory size from plan
+//                    int traj_size = trajectory.joint_trajectory.points.size();
+//
+//                    // SetStartState instead of trajectory execution
+//                    current_state.setJointGroupPositions(
+//                            "manipulator", trajectory.joint_trajectory.points[traj_size - 1].positions);
+//                    group_->setStartState(current_state);
+//
+//
+//                    // Visualize trajectory in RViz
+//                   visualizeTrajectory(trajectory.joint_trajectory);
+//
+//                } else{
+//                    ROS_ERROR("Planner failed on waypoint %d",i);
+//                    planner_fails_[i]++;
+//                    break;
+//                }
+//
+//            } else {
+//
+//                ROS_ERROR("IK failed on waypoint %d", i);
+//                outfile_fails_ik_ << "IK fail: " << i << "\n";
+//                outfile_fails_ik_ << waypoints[i].pose << "\n";
+//                ik_fails_sum_++;
+//                ik_fails_[i]++;
+//                break;
+//            }
+//        }
+    }
+}
+
+
 bool BinpickingEmulator::isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
                                            robot_state::RobotState* state,
                                            const robot_model::JointModelGroup* jmg,
@@ -230,7 +414,7 @@ bool BinpickingEmulator::isIKSolutionValid(const planning_scene::PlanningScene* 
     return (!planning_scene || !planning_scene->isStateColliding(*state, jmg->getName()));
 }
 
-void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErrorCode success, moveit::planning_interface::MoveGroupInterface::Plan plan, double time, const geometry_msgs::Pose pose){
+void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose){
 
     num_of_attempt_++;
     double sum_joint_diff_swap = 0;
@@ -238,12 +422,12 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
     joints_diff.resize(6, 0);
 
     if (success){
-    for (int i = 1; i < plan.trajectory_.joint_trajectory.points.size(); i++) {
+    for (int i = 1; i < trajectory.points.size(); i++) {
         for (int j = 0; j < 6; j++) {
-            joints_diff[j] += fabs(plan.trajectory_.joint_trajectory.points[i].positions[j] -
-                             plan.trajectory_.joint_trajectory.points[i - 1].positions[j]);
-            sum_joint_diff_swap += fabs(plan.trajectory_.joint_trajectory.points[i].positions[j] -
-                                        plan.trajectory_.joint_trajectory.points[i - 1].positions[j]);
+            joints_diff[j] += fabs(trajectory.points[i].positions[j] -
+                             trajectory.points[i - 1].positions[j]);
+            sum_joint_diff_swap += fabs(trajectory.points[i].positions[j] -
+                                        trajectory.points[i - 1].positions[j]);
         }
     }
 
@@ -253,18 +437,18 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
     }
 
     path_length_test_.addPoint(pose);
-    path_length_test_.addPath(plan);
+    path_length_test_.addPath(trajectory);
 
     //sum_joint_diff_ += sum_joint_diff_swap;
     sum_time_ += time;
-    sum_traj_size_ += plan.trajectory_.joint_trajectory.points.size();
+    sum_traj_size_ += trajectory.points.size();
     num_of_success_++;
     average_time_ = sum_time_ / num_of_success_;
     average_joint_diff_ = sum_joint_diff_ / num_of_success_;
     average_traj_size_ = sum_traj_size_ / num_of_attempt_;
-    success_rate_ = (double)(ik_fails_ + num_of_fails_) / (num_of_attempt_ + ik_fails_);
+    success_rate_ = (double)(ik_fails_sum_ + num_of_fails_) / (num_of_attempt_ + ik_fails_sum_);
 
-    outfile_joint_diff_ << num_of_success_ << " joint diff: " << sum_joint_diff_swap << " trajectory size: " << plan.trajectory_.joint_trajectory.points.size() << "\n";
+    outfile_joint_diff_ << num_of_success_ << " joint diff: " << sum_joint_diff_swap << " trajectory size: " << trajectory.points.size() << "\n";
 
     if (sum_joint_diff_swap > 20.0){
         outfile_joint_diff_ << pose << "\n";
@@ -280,8 +464,13 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
 
     }
 
+    ROS_INFO("1. trajectory ik fails: %d planner fails: %d", ik_fails_[0], planner_fails_[0]);
+    ROS_INFO("2. trajectory ik fails: %d planner fails: %d", ik_fails_[1], planner_fails_[1]);
+    ROS_INFO("3. trajectory ik fails: %d planner fails: %d", ik_fails_[2], planner_fails_[2]);
+    ROS_INFO("4. trajectory ik fails: %d planner fails: %d", ik_fails_[3], planner_fails_[3]);
+
     ROS_INFO("attempt %d, average time %f, joint diff %f average joint diff %f, fails %d, average traj size %f, bad trajectory %d, traj size %d",
-             num_of_attempt_, average_time_, sum_joint_diff_swap, average_joint_diff_, num_of_fails_, average_traj_size_, bad_trajectory_, plan.trajectory_.joint_trajectory.points.size());
+             num_of_attempt_, average_time_, sum_joint_diff_swap, average_joint_diff_, num_of_fails_, average_traj_size_, bad_trajectory_, trajectory.points.size());
 
     publishResult();
     writeToFile();
@@ -451,11 +640,11 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
 
   // Check planning result
   //if ((success_approach) )//&& (success_grasp) && (success_deapproach) && (success_end))
-  //{
- //  photoneo_msgs::operation binpicking_operation;
+ // {
+   photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    /*binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
@@ -466,63 +655,63 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     binpicking_operation.info = 0;
 
     res.operations.push_back(binpicking_operation);
-*/
+
     // Operation 2 - Open Gripper
-//   binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
-//    binpicking_operation.points.clear();
-//    binpicking_operation.gripper = GRIPPER::OPEN;
-//    binpicking_operation.error = 0;
-//    binpicking_operation.info = 0;
-//
-//    res.operations.push_back(binpicking_operation);
-//
-//    // Operation 3 - Grasp Trajectory
-//    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
-//
-//    binpicking_operation.points.clear();
-//    for (int i = 0; i < grasp_traj_size; i++)
-//      binpicking_operation.points.push_back(to_grasp_pose.joint_trajectory.points[i]);
-//
-//    binpicking_operation.gripper = 0;
-//    binpicking_operation.error = 0;
-//    binpicking_operation.info = 0;
-//
-//    res.operations.push_back(binpicking_operation);
-//
-//    // Operation 4 - Close Gripper
-//   /* binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
-//    binpicking_operation.points.clear();
-//    binpicking_operation.gripper = GRIPPER::CLOSE;
-//    binpicking_operation.error = 0;
-//    binpicking_operation.info = 0;
-//
-//    res.operations.push_back(binpicking_operation);
-//
-//    // Operation 5 - Deapproach trajectory
-//    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
-//
-//    binpicking_operation.points.clear();
-//    for (int i = 0; i < deapproach_traj_size; i++)
-//      binpicking_operation.points.push_back(to_deapproach_pose.joint_trajectory.points[i]);
-//
-//    binpicking_operation.gripper = 0;
-//    binpicking_operation.error = 0;
-//    binpicking_operation.info = 0;
-//
-//    res.operations.push_back(binpicking_operation);
-//*/
-//    // Operation 6 - End Trajectory
-//    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
-//
-//    binpicking_operation.points.clear();
-//    for (int i = 0; i < end_traj_size; i++)
-//      binpicking_operation.points.push_back(to_end_pose.trajectory_.joint_trajectory.points[i]);
-//
-//    binpicking_operation.gripper = 0;
-//    binpicking_operation.error = 0;
-//    binpicking_operation.info = 0;
-//
-//    res.operations.push_back(binpicking_operation);
+   binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = GRIPPER::OPEN;
+    binpicking_operation.error = 0;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    // Operation 3 - Grasp Trajectory
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+
+    binpicking_operation.points.clear();
+    for (int i = 0; i < grasp_traj_size; i++)
+      binpicking_operation.points.push_back(to_grasp_pose.joint_trajectory.points[i]);
+
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = 0;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    // Operation 4 - Close Gripper
+    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
+    binpicking_operation.points.clear();
+    binpicking_operation.gripper = GRIPPER::CLOSE;
+    binpicking_operation.error = 0;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    // Operation 5 - Deapproach trajectory
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+
+    binpicking_operation.points.clear();
+    for (int i = 0; i < deapproach_traj_size; i++)
+      binpicking_operation.points.push_back(to_deapproach_pose.joint_trajectory.points[i]);
+
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = 0;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
+
+    // Operation 6 - End Trajectory
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+
+    binpicking_operation.points.clear();
+    for (int i = 0; i < end_traj_size; i++)
+      binpicking_operation.points.push_back(to_end_pose.trajectory_.joint_trajectory.points[i]);
+
+    binpicking_operation.gripper = 0;
+    binpicking_operation.error = 0;
+    binpicking_operation.info = 0;
+
+    res.operations.push_back(binpicking_operation);
 
     return true;
  /* }
