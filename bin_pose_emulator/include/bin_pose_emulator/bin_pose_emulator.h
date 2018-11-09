@@ -37,6 +37,9 @@ struct ConfigData
   double bin_size_y;
   double bin_size_z;
 
+    // Virtual Bin rotation around world Z axis
+  double z_rotation;
+
   // Default tool point orientation
   double roll_default;
   double pitch_default;
@@ -70,20 +73,22 @@ public:
 
 protected:
     bool parseConfig(std::string filepath);
-    void visualizeBin(void);
+    tf::Transform visualizeBin(void);
     void visualizePose(geometry_msgs::Pose grasp_pose,
                        geometry_msgs::Pose approach_pose, bool multiArray = false);
-    void broadcastPoseTF(geometry_msgs::Pose grasp_pose);
+    tf::Transform broadcastPoseTF(geometry_msgs::Pose grasp_pose);
 
 private:
   double randGen(double fMin, double fMax);
   bool getNextPose(geometry_msgs::Pose *pose);
+  void getRandomPose(geometry_msgs::Pose *pose);
 
 
   ros::Publisher marker_pub_;
 
   ConfigData config_;
 
+  tf::TransformBroadcaster broadcaster_;
 
 };
 

@@ -41,40 +41,28 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   // Generate random Grasp pose
   geometry_msgs::Pose grasp_pose;
 #ifdef RANDOM_BIN_POSE
-  grasp_pose.position.x = randGen(config_.bin_center_x - config_.bin_size_x / 2,
-                                  config_.bin_center_x + config_.bin_size_x / 2);
-  grasp_pose.position.y = randGen(config_.bin_center_y - config_.bin_size_y / 2,
-                                  config_.bin_center_y + config_.bin_size_y / 2);
-  grasp_pose.position.z = randGen(config_.bin_center_z - config_.bin_size_z / 2,
-                                  config_.bin_center_z + config_.bin_size_z / 2);
+  getNextPose(&grasp_pose);
 
-  double grasp_roll = randGen(config_.roll_default - config_.roll_range / 2,
-                              config_.roll_default + config_.roll_range / 2);
-  double grasp_pitch = randGen(config_.pitch_default - config_.pitch_range / 2,
-                               config_.pitch_default + config_.pitch_range / 2);
-  double grasp_yaw = randGen(config_.yaw_default - config_.yaw_range / 2,
-                             config_.yaw_default + config_.yaw_range / 2);
-
-  tf::Quaternion grasp_orientation;
-  grasp_orientation.setRPY(grasp_roll, grasp_pitch, grasp_yaw);
-  grasp_pose.orientation.x = grasp_orientation.getX();
-  grasp_pose.orientation.y = grasp_orientation.getY();
-  grasp_pose.orientation.z = grasp_orientation.getZ();
-  grasp_pose.orientation.w = grasp_orientation.getW();
-
-  #else
-  bool isEnd =  getNextPose(&grasp_pose);
+#else
+  bool isEnd = getNextPose(&grasp_pose);
 
     if (isEnd)
         return false;
-
-  tf::Quaternion grasp_orientation;
-  grasp_orientation.setX(grasp_pose.orientation.x);
-  grasp_orientation.setY(grasp_pose.orientation.y);
-  grasp_orientation.setZ(grasp_pose.orientation.z);
-  grasp_orientation.setW(grasp_pose.orientation.w);
-
 #endif
+
+  tf::Transform bin_transform = visualizeBin();
+  tf::Transform object_transform = broadcastPoseTF(grasp_pose);
+  tf::Transform result = bin_transform * object_transform;
+
+  grasp_pose.position.x = result.getOrigin().x();
+  grasp_pose.position.y = result.getOrigin().y();
+  grasp_pose.position.z = result.getOrigin().z();
+  grasp_pose.orientation.x = result.getRotation().x();
+  grasp_pose.orientation.y = result.getRotation().y();
+  grasp_pose.orientation.z = result.getRotation().z();
+  grasp_pose.orientation.w = result.getRotation().w();
+
+  tf::Quaternion grasp_orientation = result.getRotation();
 
   res.grasp_pose = grasp_pose;
 
@@ -95,6 +83,8 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   approach_pose.orientation = grasp_pose.orientation;
   res.approach_pose = approach_pose;
 
+  visualizePose(grasp_pose, approach_pose);
+
   //-------------------------------------------------------------------------------------------
   // Calculate Deapproach point according to exitsing grasp pose
   geometry_msgs::Pose deapproach_pose;
@@ -103,20 +93,36 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   deapproach_pose.position.z =
       deapproach_pose.position.z + config_.deapproach_height;
 
-  visualizeBin();
-  visualizePose(grasp_pose, approach_pose);
-  broadcastPoseTF(grasp_pose);
-
   res.deapproach_pose = deapproach_pose;
 
   return true;
 }
 
-bool BinPoseEmulator::getNextPose(geometry_msgs::Pose *pose) {
+void BinPoseEmulator::getRandomPose(geometry_msgs::Pose *pose) {
 
-  static double x = config_.bin_center_x -config_.bin_size_x / 2;
-  static double y = config_.bin_center_y -config_.bin_size_y / 2;
-  static double z = config_.bin_center_z -config_.bin_size_z / 2;
+  pose->position.x = randGen( - config_.bin_size_x / 2, config_.bin_size_x / 2);
+  pose->position.y = randGen( - config_.bin_size_y / 2, config_.bin_size_y / 2);
+  pose->position.z = randGen( - config_.bin_size_z / 2, config_.bin_size_z / 2);
+
+  double grasp_roll = randGen(config_.roll_default - config_.roll_range / 2,
+                              config_.roll_default + config_.roll_range / 2);
+  double grasp_pitch = randGen(config_.pitch_default - config_.pitch_range / 2,
+                               config_.pitch_default + config_.pitch_range / 2);
+  double grasp_yaw = randGen(config_.yaw_default - config_.yaw_range / 2,
+                             config_.yaw_default + config_.yaw_range / 2);
+
+  tf::Quaternion grasp_orientation;
+  grasp_orientation.setRPY(grasp_roll, grasp_pitch, grasp_yaw);
+  pose->orientation.x = grasp_orientation.getX();
+  pose->orientation.y = grasp_orientation.getY();
+  pose->orientation.z = grasp_orientation.getZ();
+  pose->orientation.w = grasp_orientation.getW();
+}
+
+bool BinPoseEmulator::getNextPose(geometry_msgs::Pose *pose) {
+  static double x =  -config_.bin_size_x / 2;
+  static double y =  -config_.bin_size_y / 2;
+  static double z =  -config_.bin_size_z / 2;
 
   static double roll = config_.roll_default -config_.roll_range / 2;
   static double pitch = config_.pitch_default -config_.pitch_range / 2;
@@ -135,19 +141,19 @@ bool BinPoseEmulator::getNextPose(geometry_msgs::Pose *pose) {
         roll = config_.roll_default - config_.roll_range / 2;
         x += config_.step_x;
 
-        if (x >= config_.bin_center_x + config_.bin_size_x / 2) {
-          x = config_.bin_center_x - config_.bin_size_x / 2;
+        if (x >= config_.bin_size_x / 2) {
+          x = -config_.bin_size_x / 2;
           y += config_.step_y;
 
-          if (y >= config_.bin_center_y + config_.bin_size_y / 2) {
-            y = config_.bin_center_y - config_.bin_size_y / 2;
+          if (y >= config_.bin_size_y / 2) {
+            y = -config_.bin_size_y / 2;
             z += config_.step_z;
 
-            if (z >= config_.bin_center_z + config_.bin_size_z / 2) {
+            if (z >= config_.bin_size_z / 2) {
 
-              x = config_.bin_center_x -config_.bin_size_x / 2;
-              y = config_.bin_center_y -config_.bin_size_y / 2;
-              z = config_.bin_center_z -config_.bin_size_z / 2;
+              x = -config_.bin_size_x / 2;
+              y = -config_.bin_size_y / 2;
+              z = -config_.bin_size_z / 2;
 
               roll = config_.roll_default -config_.roll_range / 2;
               pitch = config_.pitch_default -config_.pitch_range / 2;
@@ -212,6 +218,8 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
     config_.approach_distance = config_file["approach_distance"].as<float>();
     config_.deapproach_height = config_file["deapproach_height"].as<float>();
 
+    config_.z_rotation = config_file["z_rotation"].as<float>();
+
 #ifndef RANDOM_BIN_POSE
     config_.step_x = config_file["step_x"].as<float>();
     config_.step_y = config_file["step_y"].as<float>();
@@ -227,23 +235,27 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
   }
 }
 
-void BinPoseEmulator::visualizeBin(void)
+tf::Transform BinPoseEmulator::visualizeBin(void)
 {
+
+  //Create transformation, set origin and rotation and finally send
+  tf::Transform transform_bin;
+  transform_bin.setOrigin(tf::Vector3(config_.bin_center_x, config_.bin_center_y, config_.bin_center_z));
+  tf::Quaternion q;
+  q.setRPY(0,0,config_.z_rotation);
+  transform_bin.setRotation(q);
+  broadcaster_.sendTransform(tf::StampedTransform(transform_bin, ros::Time::now(),"base_link", "bin"));
 
   uint32_t shape = visualization_msgs::Marker::CUBE;
   visualization_msgs::Marker marker;
 
-  marker.header.frame_id = "/base_link";
+  marker.header.frame_id = "/bin";
   marker.header.stamp = ros::Time::now();
 
   marker.ns = "bin";
   marker.id = 0;
   marker.type = shape;
   marker.action = visualization_msgs::Marker::ADD;
-
-  marker.pose.position.x = config_.bin_center_x;
-  marker.pose.position.y = config_.bin_center_y;
-  marker.pose.position.z = config_.bin_center_z;
 
   marker.scale.x = config_.bin_size_x;
   marker.scale.y = config_.bin_size_y;
@@ -256,6 +268,8 @@ void BinPoseEmulator::visualizeBin(void)
 
   marker.lifetime = ros::Duration();
   marker_pub_.publish(marker);
+
+  return transform_bin;
 }
 
 void BinPoseEmulator::visualizePose(geometry_msgs::Pose grasp_pose,
@@ -305,7 +319,7 @@ void BinPoseEmulator::visualizePose(geometry_msgs::Pose grasp_pose,
 }
 
 
-void BinPoseEmulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
+tf::Transform BinPoseEmulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
 {
   static tf::TransformBroadcaster br;
   tf::Transform transform;
@@ -317,7 +331,9 @@ void BinPoseEmulator::broadcastPoseTF(geometry_msgs::Pose grasp_pose)
                      grasp_pose.orientation.z, grasp_pose.orientation.w));
 
   br.sendTransform(tf::StampedTransform(transform, ros::Time::now(),
-                                        "base_link", "current_goal"));
+                                        "bin", "current_goal"));
+
+  return transform;
 }
 
 
