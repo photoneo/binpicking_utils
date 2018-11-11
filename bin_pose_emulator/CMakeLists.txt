@@ -7,6 +7,7 @@ find_package(catkin REQUIRED
     roscpp
     bin_pose_msgs
     tf
+   sensor_msgs
    )
 
 catkin_package()

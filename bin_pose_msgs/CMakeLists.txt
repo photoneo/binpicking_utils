@@ -9,11 +9,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_service_files(
   FILES
-  bin_pose.srv)
+  bin_pose.srv
+  change_data.srv)
 
 generate_messages(
   DEPENDENCIES geometry_msgs std_msgs
 )
+
 
 catkin_package(
     CATKIN_DEPENDS message_runtime std_msgs geometry_msgs genmsg

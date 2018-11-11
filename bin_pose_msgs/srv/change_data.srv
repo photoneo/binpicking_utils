@@ -1,0 +1,4 @@
+int32 data
+---
+int32 max_failures_on_point
+string message

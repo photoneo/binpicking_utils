@@ -18,12 +18,16 @@
   <build_depend>bin_pose_msgs</build_depend>
   <build_depend>yaml-cpp</build_depend>
   <build_depend>visualization_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+
   <build_depend>tf</build_depend>
 
   <run_depend>roscpp</run_depend>
   <run_depend>bin_pose_msgs</run_depend>
   <run_depend>yaml-cpp</run_depend>
   <run_depend>visualization_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+
   <run_depend>tf</run_depend>
 
 </package>
