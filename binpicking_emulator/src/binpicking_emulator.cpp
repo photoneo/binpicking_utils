@@ -276,7 +276,7 @@ void BinpickingEmulator::binPickingLoop(){
         std::vector<Waypoint> waypoints(4);
         ik_fails_.resize(waypoints.size());
         planner_fails_.resize(waypoints.size());
-
+        continuity_checker_.resize(waypoints.size());
 
         if (bin_pose_client_.call(srv)) {
             waypoints[0].pose = srv.response.approach_pose;
@@ -292,13 +292,23 @@ void BinpickingEmulator::binPickingLoop(){
             waypoints[2].is_linear = false;
             waypoints[3].is_joint_space = true;
 
+            if (last_point_.x == 0 && last_point_.y == 0 && last_point_.z == 0){
+                outfile_points_ << "X   Y   Z   grasp IK, approach IK, deapproach IK, planner1, planner2, planner3, planner4, continuity1, continuity2\n";
+            }
             if (last_point_.x != srv.response.grasp_pose.position.x || last_point_.y != srv.response.grasp_pose.position.y || last_point_.z != srv.response.grasp_pose.position.z){
-                outfile_points_ << point_id_ << ", " << last_point_.x << ", " << last_point_.y << ", " << last_point_.z << ", " << ik_fails_[1] << "\n";
+                outfile_points_ << point_id_ << ", " << last_point_.x << ", " << last_point_.y << ", " << last_point_.z << ", "
+                                << ik_fails_[1]<<  ", " << ik_fails_[0] << ", " << ik_fails_[2] << ", "
+                                << planner_fails_[0] << ", " << planner_fails_[1] << ", " << planner_fails_[2] << ", " << planner_fails_[3] << ","
+                                << continuity_checker_[0] << ", " << continuity_checker_[1] << ", " <<  continuity_checker_[2] << ", " << continuity_checker_[3] << "\n";
                 point_id_++;
-                ik_fails_[1] = 0;
+                for (int i = 0; i < waypoints.size(); i++){
+                    ik_fails_[i] = 0;
+                    planner_fails_[i] = 0;
+                    continuity_checker_[i] = 0;
+                }
+
                 last_point_ = srv.response.grasp_pose.position;
             }
-
 
         } else {
             // Dosiahol vsetky party v bin-e
@@ -314,7 +324,7 @@ void BinpickingEmulator::binPickingLoop(){
         bool found_ik = false;
         moveit::planning_interface::MoveItErrorCode success_approach = false;
 
-        if(!kinematic_state->setFromIK(joint_model_group, waypoints[1].pose, 5, 0.005,
+        if(!kinematic_state->setFromIK(joint_model_group, waypoints[1].pose, 3, 0.005,
                                               groupStateValidityCallbackFn)){
             ROS_ERROR("IK failed on point %d", point_id_);
             outfile_fails_ik_ << "IK fail: " << 1 << "\n";
@@ -324,84 +334,90 @@ void BinpickingEmulator::binPickingLoop(){
             continue;
         }
 
-//        for (int i = 0; i < waypoints.size(); i++) {
-//
-//            if (waypoints[i].is_joint_space){
-//                found_ik = true;
-//            } else {
-//                // Find IK in approach pose
-//                //---------------------------------------------------
-//                found_ik = kinematic_state->setFromIK(joint_model_group, waypoints[i].pose, 5, 0.005,
-//                                                      groupStateValidityCallbackFn);
-//            }
-//            double time = 0;
-//            if (found_ik) {
-//
-//                //ROS_WARN("found IK");
-//
-//                if (!waypoints[i].is_joint_space) {
-//                    kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
-//                    group_->setJointValueTarget(joint_values);
-//
-//                } else{
-//                    group_->setJointValueTarget(waypoints[i].end_joint_state);
-//
-//                }
-//                //---------------------------------------------------
-//                // Plan trajectory from current to approach pose
-//                //---------------------------------------------------
-//
-//                moveit_msgs::RobotTrajectory trajectory;
-//                double time = ros::Time::now().toSec();
-//
-//                if (waypoints[i].is_linear){
-//                    std::vector<geometry_msgs::Pose> linear_waypoints;
-//                    linear_waypoints.push_back(waypoints[i - 1].pose);
-//                    linear_waypoints.push_back(waypoints[i].pose);
-//                    success_approach = group_->computeCartesianPath(linear_waypoints, 0.02, 0, trajectory, false);
-//                } else{
-//                    moveit::planning_interface::MoveGroupInterface::Plan plan;
-//                    double time = ros::Time::now().toSec();
-//                    success_approach = group_->plan(plan);
-//                    trajectory = plan.trajectory_;
-//                }
-//
-//                time = ros::Time::now().toSec() - time;
-//                createStatistics(success_approach, trajectory.joint_trajectory, time, waypoints[i].pose);
-//
-//                if (success_approach) {
-//
-//                    // Get trajectory size from plan
-//                    int traj_size = trajectory.joint_trajectory.points.size();
-//
-//                    // SetStartState instead of trajectory execution
-//                    current_state.setJointGroupPositions(
-//                            "manipulator", trajectory.joint_trajectory.points[traj_size - 1].positions);
-//                    group_->setStartState(current_state);
-//
-//
-//                    // Visualize trajectory in RViz
-//                   visualizeTrajectory(trajectory.joint_trajectory);
-//
-//                } else{
-//                    ROS_ERROR("Planner failed on waypoint %d",i);
-//                    planner_fails_[i]++;
-//                    break;
-//                }
-//
-//            } else {
-//
-//                ROS_ERROR("IK failed on waypoint %d", i);
-//                outfile_fails_ik_ << "IK fail: " << i << "\n";
-//                outfile_fails_ik_ << waypoints[i].pose << "\n";
-//                ik_fails_sum_++;
-//                ik_fails_[i]++;
-//                break;
-//            }
-//        }
+        for (int i = 0; i < waypoints.size(); i++) {
+
+            if (waypoints[i].is_joint_space){
+                found_ik = true;
+            } else {
+                // Find IK in approach pose
+                //---------------------------------------------------
+                found_ik = kinematic_state->setFromIK(joint_model_group, waypoints[i].pose, 3, 0.005,
+                                                      groupStateValidityCallbackFn);
+            }
+            double time = 0;
+            if (found_ik) {
+
+                //ROS_WARN("found IK");
+
+                if (!waypoints[i].is_joint_space) {
+                    kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+                    group_->setJointValueTarget(joint_values);
+
+                } else{
+                    group_->setJointValueTarget(waypoints[i].end_joint_state);
+
+                }
+                //---------------------------------------------------
+                // Plan trajectory from current to approach pose
+                //---------------------------------------------------
+
+                moveit_msgs::RobotTrajectory trajectory;
+                double time = ros::Time::now().toSec();
+
+                if (waypoints[i].is_linear){
+                    std::vector<geometry_msgs::Pose> linear_waypoints;
+                    linear_waypoints.push_back(waypoints[i - 1].pose);
+                    linear_waypoints.push_back(waypoints[i].pose);
+                    success_approach = group_->computeCartesianPath(linear_waypoints, 0.01, 0, trajectory, false);
+
+                } else{
+                    moveit::planning_interface::MoveGroupInterface::Plan plan;
+                    double time = ros::Time::now().toSec();
+                    success_approach = group_->plan(plan);
+                    trajectory = plan.trajectory_;
+                }
+
+                time = ros::Time::now().toSec() - time;
+
+                if (!checkCartesianContinuity(trajectory, 2.2)){
+                    success_approach = false;
+                    continuity_checker_[i]++;
+                }
+                createStatistics(success_approach, trajectory.joint_trajectory, time, waypoints[i].pose);
+
+                if (success_approach) {
+
+
+                    // Get trajectory size from plan
+                    int traj_size = trajectory.joint_trajectory.points.size();
+
+                    // SetStartState instead of trajectory execution
+                    current_state.setJointGroupPositions(
+                            "manipulator", trajectory.joint_trajectory.points[traj_size - 1].positions);
+                    group_->setStartState(current_state);
+
+
+                    // Visualize trajectory in RViz
+                   visualizeTrajectory(trajectory.joint_trajectory);
+
+                } else{
+                    ROS_ERROR("Planner failed on waypoint %d",i);
+                    planner_fails_[i]++;
+                    break;
+                }
+
+            } else {
+
+                ROS_ERROR("IK failed on waypoint %d", i);
+                outfile_fails_ik_ << "IK fail: " << i << "\n";
+                outfile_fails_ik_ << waypoints[i].pose << "\n";
+                ik_fails_sum_++;
+                ik_fails_[i]++;
+                break;
+            }
+        }
     }
 }
-
 
 bool BinpickingEmulator::isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
                                            robot_state::RobotState* state,
@@ -464,10 +480,10 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
 
     }
 
-    ROS_INFO("1. trajectory ik fails: %d planner fails: %d", ik_fails_[0], planner_fails_[0]);
-    ROS_INFO("2. trajectory ik fails: %d planner fails: %d", ik_fails_[1], planner_fails_[1]);
-    ROS_INFO("3. trajectory ik fails: %d planner fails: %d", ik_fails_[2], planner_fails_[2]);
-    ROS_INFO("4. trajectory ik fails: %d planner fails: %d", ik_fails_[3], planner_fails_[3]);
+    ROS_INFO("1. trajectory ik fails: %d planner fails: %d treshold %d", ik_fails_[0], planner_fails_[0], continuity_checker_[0]);
+    ROS_INFO("2. trajectory ik fails: %d planner fails: %d treshold %d", ik_fails_[1], planner_fails_[1], continuity_checker_[1]);
+    ROS_INFO("3. trajectory ik fails: %d planner fails: %d treshold %d", ik_fails_[2], planner_fails_[2], continuity_checker_[2]);
+    ROS_INFO("4. trajectory ik fails: %d planner fails: %d treshold %d", ik_fails_[3], planner_fails_[3], continuity_checker_[3]);
 
     ROS_INFO("attempt %d, average time %f, joint diff %f average joint diff %f, fails %d, average traj size %f, bad trajectory %d, traj size %d",
              num_of_attempt_, average_time_, sum_joint_diff_swap, average_joint_diff_, num_of_fails_, average_traj_size_, bad_trajectory_, trajectory.points.size());
@@ -502,6 +518,23 @@ void BinpickingEmulator::writeToFile() {
         path_length_test_.saveLog();
     }
 }
+
+bool BinpickingEmulator::checkCartesianContinuity(moveit_msgs::RobotTrajectory &trajectory, float limit){
+    //static int bad_trajectory_counter = 0;
+
+    for (int pointIdx = 1; pointIdx < trajectory.joint_trajectory.points.size(); pointIdx++) {
+
+        for (int j = 0; j < 6; j++) {
+            double diff = fabs(trajectory.joint_trajectory.points[pointIdx].positions[j] -
+                               trajectory.joint_trajectory.points[pointIdx - 1].positions[j]);
+
+            if (diff > limit) {
+                ROS_ERROR("WRONG TRAJECTORY CONTINUITY diff: %lf on joit %d from %lf to %lf",diff,j,trajectory.joint_trajectory.points[pointIdx-1].positions[j], trajectory.joint_trajectory.points[pointIdx].positions[j]);
+                return false;
+            }
+        }
+    }
+    return true;
 
 bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Request& req,
                                                 photoneo_msgs::operations::Response& res)

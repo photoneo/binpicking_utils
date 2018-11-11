@@ -11,7 +11,7 @@
 
   <!--TODO prec test parameter pre MISA-->
   <!--==========Bin pose emulator for test================-->
-  <param name="filepath" value="$(find bin_pose_emulator)/config/bin_pose_emulator_abb_4600.yaml" if="$(arg test)"/>
+  <param name="filepath" value="$(find bin_pose_emulator)/config/bin_pose_emulator_ur.yaml" if="$(arg test)"/>
   <include file="$(find binpicking_emulator)/launch/binpicking_emulator.launch" if="$(arg test)" />
 
   <!--Ak by si chcel generovat tie zelene collision object - ale to asi nepotrebujes-->

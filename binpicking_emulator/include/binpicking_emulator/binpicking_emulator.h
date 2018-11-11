@@ -87,6 +87,7 @@ private:
     void writeToFile();
     void createStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose);
 
+    bool checkCartesianContinuity(moveit_msgs::RobotTrajectory &trajectory, float limit);
 
     int num_of_joints_;
   std::vector<double> start_pose_from_robot_;
@@ -123,6 +124,7 @@ private:
 
     std::vector<int> ik_fails_;
     std::vector<int> planner_fails_;
+    std::vector<int> continuity_checker_;
     int point_id_;
     geometry_msgs::Point last_point_;
 };  // class
