@@ -519,7 +519,7 @@ void BinpickingEmulator::writeToFile() {
     }
 }
 
-bool BinpickingEmulator::checkCartesianContinuity(moveit_msgs::RobotTrajectory &trajectory, float limit){
+bool BinpickingEmulator::checkCartesianContinuity(moveit_msgs::RobotTrajectory &trajectory, float limit) {
     //static int bad_trajectory_counter = 0;
 
     for (int pointIdx = 1; pointIdx < trajectory.joint_trajectory.points.size(); pointIdx++) {
@@ -529,12 +529,15 @@ bool BinpickingEmulator::checkCartesianContinuity(moveit_msgs::RobotTrajectory &
                                trajectory.joint_trajectory.points[pointIdx - 1].positions[j]);
 
             if (diff > limit) {
-                ROS_ERROR("WRONG TRAJECTORY CONTINUITY diff: %lf on joit %d from %lf to %lf",diff,j,trajectory.joint_trajectory.points[pointIdx-1].positions[j], trajectory.joint_trajectory.points[pointIdx].positions[j]);
+                ROS_ERROR("WRONG TRAJECTORY CONTINUITY diff: %lf on joit %d from %lf to %lf", diff, j,
+                          trajectory.joint_trajectory.points[pointIdx - 1].positions[j],
+                          trajectory.joint_trajectory.points[pointIdx].positions[j]);
                 return false;
             }
         }
     }
     return true;
+}
 
 bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Request& req,
                                                 photoneo_msgs::operations::Response& res)
