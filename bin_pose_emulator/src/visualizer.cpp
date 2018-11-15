@@ -33,8 +33,9 @@ public:
 
     Visualizer(ros::NodeHandle* nh, std::string filepath){
 
+        key_values_ = {4, 5, 6, 8, 9, 12, 13};
         point_cloud_pub_ = nh->advertise<sensor_msgs::PointCloud>("point_cloud",10);
-        displayed_value_ = 4;
+        displayed_value_ = 15;
 
         std::ifstream infile;
 
@@ -55,12 +56,14 @@ public:
 
         data_.erase(data_.end());
 
-        ROS_INFO("Size of values %d", data_[0].size());
+        addSumFailures();
+
+        ROS_INFO("Size of values %d", data_.size());
         int max_value = 0;
-        for (int i = 4; i < 14; i++){
+        for (int i = 4; i < data_[0].size(); i++){
             displayed_value_ = i;
             max_value = findMaxValue();
-            ROS_INFO("Maximum fails [%s] on 1 point %d", data_types_[i].c_str(), i);
+            ROS_INFO("Maximum fails [%s] on 1 point %d", data_types_[i].c_str(), max_value);
         }
 
         displayed_value_ = 4;
@@ -68,6 +71,7 @@ public:
         for (auto &values : data_){
             parseValues(cloud_, values, max_value);
         }
+
     }
 
     void visualize(){
@@ -104,6 +108,8 @@ private:
     int displayed_value_;
     std::vector<std::vector<double> > data_;
     std::mutex mutex_;
+    std::vector<double> sum_;
+    std::vector<int> key_values_;
 
     std::map<int, std::string> data_types_= {
             {0, "ID"},
@@ -118,19 +124,22 @@ private:
             {9,  "grasp - deaprroach L traj"},
             {10, "deaprroach - end J traj"},
             {11,  "start - approach continuity"},
-            {12,  "aprroach - grasp continuty"},
+            {12,  "aprroach - grasp continuity"},
             {13,  "grasp - deaprroach continuity"},
             {14, "deaprroach - end continuity"},
+            {15, "sum"},
+
     };
 
     std::vector<double> parseLine(std::string str){
-        ROS_INFO("%s", str.c_str());
+
         std::vector<double> values;
         std::vector<std::string> words;
         boost::split(words, str, boost::is_any_of(","), boost::token_compress_on);
 
         for (const auto &word : words) {
            values.push_back((double) atof(word.c_str()));
+
         }
         return values;
     }
@@ -149,14 +158,16 @@ private:
         float g = 0.0;
         float b = 2.0 - values[displayed_value_]*scale;
 
-        cloud.channels[0].name = "r";
-        cloud.channels[1].name = "g";
-        cloud.channels[2].name = "b";
-        cloud.channels[0].values.push_back(r);
-        cloud.channels[1].values.push_back(b);
-        cloud.channels[2].values.push_back(g);
-        cloud.points.push_back(p);
+        if (values[4] < 50) {
 
+            cloud.channels[0].name = "r";
+            cloud.channels[1].name = "g";
+            cloud.channels[2].name = "b";
+            cloud.channels[0].values.push_back(r);
+            cloud.channels[1].values.push_back(b);
+            cloud.channels[2].values.push_back(g);
+            cloud.points.push_back(p);
+        }
         return values[displayed_value_];
     }
 
@@ -168,6 +179,20 @@ private:
                 max_value = values[displayed_value_];
         }
         return max_value;
+    }
+
+    void addSumFailures(){
+
+        double sum = 0;
+        for (auto &values: data_){
+            sum = 0;
+            for (const auto &key : key_values_){
+                if (values[key]){
+                    sum += values[key];
+                }
+            }
+            values.push_back(sum);
+        }
     }
 };
 
