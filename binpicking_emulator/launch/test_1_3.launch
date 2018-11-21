@@ -1,0 +1,14 @@
+<launch>
+  <!-- Bin pose emulator -->
+  <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/>
+<param name="filepath" value="$(find bin_pose_emulator)/config/example_config.yaml"/> 
+
+  <!-- Bin picking emulator -->
+  <node pkg="binpicking_emulator" name="binpicking_emulator" type="binpicking_emulator" output="screen"/>
+
+  <!-- launch moveit_config and robot interface -->
+  <include file="$(find pho_robot_loader)/launch/robot_interface.launch">
+    <arg name="moveit_config_package" value="$(find pho_global_moveit_config)"/>
+  </include>
+
+</launch>
