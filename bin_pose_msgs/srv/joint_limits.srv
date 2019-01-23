@@ -1,0 +1,6 @@
+geometry_msgs/Point bin_corner_1
+geometry_msgs/Point bin_corner_2
+int32 iterations
+---
+moveit_msgs/JointLimits[] joint_limits
+float32 success_rate

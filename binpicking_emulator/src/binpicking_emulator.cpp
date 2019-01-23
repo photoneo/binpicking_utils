@@ -80,7 +80,7 @@ bool BinpickingEmulator::binPickingInitCallback(photoneo_msgs::initialize_pose::
 bool BinpickingEmulator::binPickingScanCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Binpicking Scan Service called");
-  ros::Duration(5).sleep();
+  //ros::Duration(0.5).sleep();
   res.success = true;
   return true;
 }
@@ -283,7 +283,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
@@ -296,13 +296,13 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 2 - Open Gripper
-    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
-    binpicking_operation.points.clear();
-    binpicking_operation.gripper = GRIPPER::OPEN;
-    binpicking_operation.error = 0;
-    binpicking_operation.info = 0;
-
-    res.operations.push_back(binpicking_operation);
+    //binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
+    //binpicking_operation.points.clear();
+    //binpicking_operation.gripper = GRIPPER::OPEN;
+    //binpicking_operation.error = 0;
+    //binpicking_operation.info = 0;
+    //
+    //res.operations.push_back(binpicking_operation);
 
     // Operation 3 - Grasp Trajectory
     binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
@@ -318,16 +318,16 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 4 - Close Gripper
-    binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
-    binpicking_operation.points.clear();
-    binpicking_operation.gripper = GRIPPER::CLOSE;
-    binpicking_operation.error = 0;
-    binpicking_operation.info = 0;
-
-    res.operations.push_back(binpicking_operation);
+    //binpicking_operation.operation_type = OPERATION::TYPE::GRIPPER;
+    //binpicking_operation.points.clear();
+    //binpicking_operation.gripper = GRIPPER::CLOSE;
+    //binpicking_operation.error = 0;
+    //binpicking_operation.info = 0;
+    //
+    //res.operations.push_back(binpicking_operation);
 
     // Operation 5 - Deapproach trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
@@ -340,7 +340,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 6 - End Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < end_traj_size; i++)
@@ -351,6 +351,42 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     binpicking_operation.info = 0;
 
     res.operations.push_back(binpicking_operation);
+
+    // Operation 7 - Info data 1
+   // binpicking_operation.operation_type = OPERATION::TYPE::INFO;
+   // binpicking_operation.points.clear();
+   // binpicking_operation.gripper = 0;
+   // binpicking_operation.error = 0;
+   // binpicking_operation.info = 1;
+
+    //res.operations.push_back(binpicking_operation);
+
+    // Operation 8 - Info data 2
+    //binpicking_operation.operation_type = OPERATION::TYPE::INFO;
+    //binpicking_operation.points.clear();
+    //binpicking_operation.gripper = 0;
+    //binpicking_operation.error = 0;
+    //binpicking_operation.info = 2;
+
+    //res.operations.push_back(binpicking_operation);
+
+    // Operation 9 - Info data 3
+    //binpicking_operation.operation_type = OPERATION::TYPE::INFO;
+    //binpicking_operation.points.clear();
+    //binpicking_operation.gripper = 0;
+    //binpicking_operation.error = 0;
+    //binpicking_operation.info = 3;
+
+    //res.operations.push_back(binpicking_operation);
+
+    // Operation 10 - Info data 4
+    //binpicking_operation.operation_type = OPERATION::TYPE::INFO;
+    //binpicking_operation.points.clear();
+    //binpicking_operation.gripper = 0;
+    //binpicking_operation.error = 0;
+    //binpicking_operation.info = 4;
+    //
+    //res.operations.push_back(binpicking_operation);
 
     return true;
   }

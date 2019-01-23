@@ -8,13 +8,20 @@ find_package(Eigen3 REQUIRED)
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   moveit_msgs
+  moveit_core
+  moveit_ros_planning_interface
+  bin_pose_msgs
   geometric_shapes
+  joint_limits_interface
   tf
+  tf_conversions
+  pcl_conversions
+  pcl_ros
 )
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS geometry_msgs moveit_msgs geometric_shapes tf
+  CATKIN_DEPENDS geometry_msgs moveit_msgs bin_pose_msgs geometric_shapes joint_limits_interface moveit_core moveit_ros_planning_interface tf
 )
 
 include_directories(
@@ -39,6 +46,22 @@ target_link_libraries(
   collision_object_publisher
   ${catkin_LIBRARIES}
   yaml-cpp)
+
+add_executable(
+  joint_limit_estimator
+  src/joint_limit_estimator.cpp)
+
+target_link_libraries(
+  joint_limit_estimator
+  ${catkin_LIBRARIES})
+
+add_executable(
+  working_envelope_visualizer
+  src/working_envelope_visualizer.cpp)
+
+target_link_libraries(
+  working_envelope_visualizer
+  ${catkin_LIBRARIES})
 
 # binaries
 install(TARGETS

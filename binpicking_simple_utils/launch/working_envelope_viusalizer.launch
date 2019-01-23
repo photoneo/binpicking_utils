@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+<launch>
+
+  <!-- Moveit Config -->
+  <include file="$(find fanuc_m10ia12_moveit_config)/launch/demo.launch"/>
+
+  <!-- Joint Limit Estimator -->
+  <node pkg="binpicking_simple_utils" name="joint_limit_estimator" type="joint_limit_estimator" output="screen"/>
+
+  <!-- Working Envelope Visualizer -->
+  <node pkg="binpicking_simple_utils" name="working_envelope_visualizer" type="working_envelope_visualizer" output="screen"/>
+
+</launch>
