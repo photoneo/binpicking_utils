@@ -53,33 +53,11 @@ BinpickingEmulator::~BinpickingEmulator()
 {
 }
 
-bool BinpickingEmulator::binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req,
-                                                photoneo_msgs::initialize_pose::Response& res)
+bool BinpickingEmulator::binPickingScanCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res)
 {
-  ROS_INFO("BIN PICKING EMULATOR: Binpicking Init Service called. Vision system ID %d", req.vision_system_id);
+  ROS_INFO("BIN PICKING EMULATOR: Binpicking Scan Service called");
+  ROS_INFO("BIN PICKING EMULATOR: Vision system ID %d", req.id);
 
-  std::stringstream start_pose_string, end_pose_string;
-
-  for(int i = 0; i < num_of_joints_; i++)
-  {
-    start_pose_from_robot_[i] = req.startPose.position[i];
-    end_pose_from_robot_[i] = req.endPose.position[i];
-
-    start_pose_string << req.startPose.position[i] << " ";
-    end_pose_string << req.endPose.position[i] << " ";
-  }
-
-  ROS_INFO("BIN PICKING EMULATOR: START POSE: [%s] ", start_pose_string.str().c_str());
-  ROS_INFO("BIN PICKING EMULATOR: END POSE: [%s]", end_pose_string.str().c_str());
-
-  res.success = true;
-  res.result = 0;
-  return true;
-}
-
-bool BinpickingEmulator::binPickingScanCallback(photoneo_msgs::trigger::Request& req, photoneo_msgs::trigger::Response& res)
-{
-  ROS_INFO("BIN PICKING EMULATOR: Binpicking Scan Service called. Vision system ID %d", req.vision_system_id);
   ros::Duration(5).sleep();
   res.success = true;
   return true;
@@ -88,7 +66,8 @@ bool BinpickingEmulator::binPickingScanCallback(photoneo_msgs::trigger::Request&
 bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Request& req,
                                                 photoneo_msgs::operations::Response& res)
 {
-  ROS_INFO("BIN PICKING EMULATOR: Binpicking Trajectory Service called. Vision system ID %d", req.vision_system_id);
+  ROS_INFO("BIN PICKING EMULATOR: Binpicking Trajectory Service called");
+  ROS_INFO("BIN PICKING EMULATOR: Vision system ID %d", req.vision_system_id);
 
   int start_traj_size, approach_traj_size, grasp_traj_size, deapproach_traj_size, end_traj_size;
   moveit::planning_interface::MoveGroupInterface::Plan to_start_pose;
@@ -283,7 +262,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     photoneo_msgs::operation binpicking_operation;
 
     // Operation 1 - Approach Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < approach_traj_size; i++)
@@ -340,7 +319,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 6 - End Trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < end_traj_size; i++)
@@ -383,21 +362,45 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   }
 }
 
-bool BinpickingEmulator::binLocatorTrajCallback(photoneo_msgs::trigger::Request& req, photoneo_msgs::trigger::Response& res)
+bool BinpickingEmulator::binLocatorCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res)
 {
-  ROS_INFO("BIN PICKING EMULATOR: Bin Locator");
-
+  ROS_INFO("BIN PICKING EMULATOR: Bin Locator Service Called");
+  ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d", req.id);
   ros::Duration(5).sleep();  // Simulating delay
 
   res.message = "OK";
   res.success = true;
 }
 
+bool BinpickingEmulator::binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req,
+                                                photoneo_msgs::initialize_pose::Response& res)
+{
+  ROS_INFO("BIN PICKING EMULATOR: Binpicking Init Service called");
+  ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d", req.vision_system_id);
+
+  std::stringstream start_pose_string, end_pose_string;
+
+  for(int i = 0; i < num_of_joints_; i++)
+  {
+    start_pose_from_robot_[i] = req.startPose.position[i];
+    end_pose_from_robot_[i] = req.endPose.position[i];
+
+    start_pose_string << req.startPose.position[i] << " ";
+    end_pose_string << req.endPose.position[i] << " ";
+  }
+
+  ROS_INFO("BIN PICKING EMULATOR: START POSE: [%s] ", start_pose_string.str().c_str());
+  ROS_INFO("BIN PICKING EMULATOR: END POSE: [%s]", end_pose_string.str().c_str());
+
+  res.success = true;
+  res.result = 0;
+  return true;
+}
+
 
 bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Add Point Service called");
-
   ros::Duration(5).sleep();  // Simulating delay
 
   res.average_reprojection_error = 12.345;
@@ -412,8 +415,7 @@ bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::add_point::R
 bool BinpickingEmulator::calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Set To Scanner Service called");
-
-  ros::Duration(1).sleep();   // Simulating delay
+  ros::Duration(2).sleep();   // Simulating delay
 
   res.success = true;
   return true;
@@ -422,8 +424,37 @@ bool BinpickingEmulator::calibrationSetToScannerCallback(std_srvs::Trigger::Requ
 bool BinpickingEmulator::calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Reset Service called");
-
   ros::Duration(2).sleep();   // Simulating delay
+
+  res.success = true;
+  return true;
+}
+
+bool BinpickingEmulator::calibrationStartCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res)
+{
+  ROS_INFO("BIN PICKING EMULATOR: Calibration Start Service called");
+  ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d", req.id);
+  ros::Duration(2).sleep();   // Simulating delay
+
+  res.success = true;
+  return true;
+}
+
+bool BinpickingEmulator::binPickingPickFailedCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res)
+{
+  ROS_INFO("BIN PICKING EMULATOR: Binpicking Pick Failed Service called");
+  ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d", req.id);
+  ros::Duration(5).sleep();
+
+  res.success = true;
+  return true;
+}
+
+bool BinpickingEmulator::changeSolutionCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res)
+{
+  ROS_INFO("BIN PICKING EMULATOR: Binpicking Pick Change Solution Service called");
+  ROS_INFO("BIN PICKING EMULATOR:  Solution ID %d", req.id);
+  ros::Duration(5).sleep();
 
   res.success = true;
   return true;
@@ -503,8 +534,8 @@ int main(int argc, char** argv)
       nh.advertiseService(BINPICKING_SERVICES::SCAN, &BinpickingEmulator::binPickingScanCallback, &emulator);
   ros::ServiceServer bin_picking_traj_service =
       nh.advertiseService(BINPICKING_SERVICES::TRAJECTORY, &BinpickingEmulator::binPickingTrajCallback, &emulator);
-  ros::ServiceServer bin_picking_scan_and_traj_service = nh.advertiseService(
-      BINPICKING_SERVICES::BIN_LOCATOR, &BinpickingEmulator::binLocatorTrajCallback, &emulator);
+  ros::ServiceServer bin_picking_bin_locator_service = nh.advertiseService(
+      BINPICKING_SERVICES::BIN_LOCATOR, &BinpickingEmulator::binLocatorCallback, &emulator);
   ros::ServiceServer bin_picking_init_service =
       nh.advertiseService(BINPICKING_SERVICES::INITIALIZE, &BinpickingEmulator::binPickingInitCallback, &emulator);
   ros::ServiceServer calibration_add_point_service =
@@ -513,6 +544,12 @@ int main(int argc, char** argv)
       nh.advertiseService(CALIBRATION_SERVICES::SET_TO_SCANNER, &BinpickingEmulator::calibrationSetToScannerCallback, &emulator);
   ros::ServiceServer calibration_reset_service =
       nh.advertiseService(CALIBRATION_SERVICES::RESET, &BinpickingEmulator::calibrationResetCallback, &emulator);
+  ros::ServiceServer calibration_start_service =
+      nh.advertiseService(CALIBRATION_SERVICES::START, &BinpickingEmulator::calibrationStartCallback, &emulator);
+  ros::ServiceServer bin_picking_pick_failed_service =
+      nh.advertiseService(BINPICKING_SERVICES::REMOVE_LAST_OBJECT, &BinpickingEmulator::binPickingPickFailedCallback, &emulator);
+  ros::ServiceServer change_solution_service =
+      nh.advertiseService(BINPICKING_SERVICES::CHANGE_SOLUTION, &BinpickingEmulator::changeSolutionCallback, &emulator);
 
   ROS_WARN("BIN PICKING EMULATOR: Ready");
 

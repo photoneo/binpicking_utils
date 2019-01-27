@@ -28,7 +28,7 @@ limitations under the License.
 #include <photoneo_msgs/operation.h>
 #include <photoneo_msgs/initialize_pose.h>
 #include <photoneo_msgs/add_point.h>
-#include <photoneo_msgs/trigger.h>
+#include <photoneo_msgs/trigger_with_id.h>
 #include <pho_robot_loader/constants.h>
 
 // MoveIt!
@@ -44,13 +44,16 @@ public:
   BinpickingEmulator(ros::NodeHandle* nh);
   ~BinpickingEmulator();
 
-  bool binPickingScanCallback(photoneo_msgs::trigger::Request& req, photoneo_msgs::trigger::Response& res);
+  bool binPickingScanCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
   bool binPickingTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
-  bool binLocatorTrajCallback(photoneo_msgs::trigger::Request& req, photoneo_msgs::trigger::Response& res);
+  bool binLocatorCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
   bool binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
   bool calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res);
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
+  bool calibrationStartCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
+  bool binPickingPickFailedCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
+  bool changeSolutionCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
 
 private:
   // Variables
