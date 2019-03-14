@@ -8,7 +8,12 @@ find_package(catkin REQUIRED
     bin_pose_msgs
     tf
    sensor_msgs
-   )
+        pho_localization_msgs
+        actionlib
+        actionlib_msgs
+        sensor_msgs
+
+        )
 
 catkin_package()
 
@@ -19,7 +24,8 @@ include_directories(
 add_executable(
   ${PROJECT_NAME}
   src/bin_pose_emulator.cpp
-        src/bin_pose_emulator_node.cpp)
+        src/bin_pose_emulator_node.cpp
+    src/ActionServerInterface.cpp)
 
 add_executable(
         visualizer

@@ -15,7 +15,7 @@ limitations under the License.
  *********************************************************************/
 
 #include "bin_pose_emulator/bin_pose_emulator.h"
-//#define RANDOM_BIN_POSE
+#define RANDOM_BIN_POSE
 
 
 BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)
@@ -41,10 +41,10 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   // Generate random Grasp pose
   geometry_msgs::Pose grasp_pose;
 #ifdef RANDOM_BIN_POSE
-  getNextPose(&grasp_pose);
+  getRandomPose(grasp_pose);
 
 #else
-  bool isEnd = getNextPose(&grasp_pose);
+  bool isEnd = getNextPose(grasp_pose);
 
     if (isEnd)
         return false;
@@ -98,11 +98,11 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   return true;
 }
 
-void BinPoseEmulator::getRandomPose(geometry_msgs::Pose *pose) {
+void BinPoseEmulator::getRandomPose(geometry_msgs::Pose &pose) {
 
-  pose->position.x = randGen( - config_.bin_size_x / 2, config_.bin_size_x / 2);
-  pose->position.y = randGen( - config_.bin_size_y / 2, config_.bin_size_y / 2);
-  pose->position.z = randGen( - config_.bin_size_z / 2, config_.bin_size_z / 2);
+  pose.position.x = randGen( - config_.bin_size_x / 2, config_.bin_size_x / 2);
+  pose.position.y = randGen( - config_.bin_size_y / 2, config_.bin_size_y / 2);
+  pose.position.z = randGen( - config_.bin_size_z / 2, config_.bin_size_z / 2);
 
   double grasp_roll = randGen(config_.roll_default - config_.roll_range / 2,
                               config_.roll_default + config_.roll_range / 2);
@@ -113,13 +113,13 @@ void BinPoseEmulator::getRandomPose(geometry_msgs::Pose *pose) {
 
   tf::Quaternion grasp_orientation;
   grasp_orientation.setRPY(grasp_roll, grasp_pitch, grasp_yaw);
-  pose->orientation.x = grasp_orientation.getX();
-  pose->orientation.y = grasp_orientation.getY();
-  pose->orientation.z = grasp_orientation.getZ();
-  pose->orientation.w = grasp_orientation.getW();
+  pose.orientation.x = grasp_orientation.getX();
+  pose.orientation.y = grasp_orientation.getY();
+  pose.orientation.z = grasp_orientation.getZ();
+  pose.orientation.w = grasp_orientation.getW();
 }
 
-bool BinPoseEmulator::getNextPose(geometry_msgs::Pose *pose) {
+bool BinPoseEmulator::getNextPose(geometry_msgs::Pose &pose) {
   static double x =  -config_.bin_size_x / 2;
   static double y =  -config_.bin_size_y / 2;
   static double z =  -config_.bin_size_z / 2;
@@ -166,16 +166,16 @@ bool BinPoseEmulator::getNextPose(geometry_msgs::Pose *pose) {
     }
   }
 
-  pose->position.x = x;
-  pose->position.y = y;
-  pose->position.z = z;
+  pose.position.x = x;
+  pose.position.y = y;
+  pose.position.z = z;
 
   tf::Quaternion grasp_orientation;
   grasp_orientation.setRPY(roll, pitch, yaw);
-  pose->orientation.x = grasp_orientation.getX();
-  pose->orientation.y = grasp_orientation.getY();
-  pose->orientation.z = grasp_orientation.getZ();
-  pose->orientation.w = grasp_orientation.getW();
+  pose.orientation.x = grasp_orientation.getX();
+  pose.orientation.y = grasp_orientation.getY();
+  pose.orientation.z = grasp_orientation.getZ();
+  pose.orientation.w = grasp_orientation.getW();
 
 //  pose->position.x = 1.475;
 //  pose->position.y = -0.175;

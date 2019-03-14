@@ -25,6 +25,7 @@ limitations under the License.
 #include <tf/transform_broadcaster.h>
 #include <bin_pose_msgs/bin_pose.h>
 
+
 struct ConfigData
 {
   // Virtual Bin center
@@ -70,6 +71,8 @@ public:
 
   bool callback(bin_pose_msgs::bin_pose::Request& req,
                 bin_pose_msgs::bin_pose::Response& res);
+    bool getNextPose(geometry_msgs::Pose &pose);
+    void getRandomPose(geometry_msgs::Pose &pose);
 
 protected:
     bool parseConfig(std::string filepath);
@@ -80,8 +83,7 @@ protected:
 
 private:
   double randGen(double fMin, double fMax);
-  bool getNextPose(geometry_msgs::Pose *pose);
-  void getRandomPose(geometry_msgs::Pose *pose);
+
 
 
   ros::Publisher marker_pub_;
@@ -89,6 +91,7 @@ private:
   ConfigData config_;
 
   tf::TransformBroadcaster broadcaster_;
+
 
 };
 

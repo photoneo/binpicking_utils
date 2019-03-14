@@ -15,6 +15,8 @@ limitations under the License.
  *********************************************************************/
 
 #include "bin_pose_emulator/bin_pose_emulator.h"
+#include "bin_pose_emulator/ActionServerInterface.h"
+
 //#define RANDOM_BIN_POSE
 
 
@@ -30,6 +32,7 @@ int main(int argc, char* argv[])
   // Create emulator object
   BinPoseEmulator emulator(&nh, filepath);
 
+  ActionServerInterface actionServer(std::make_shared<BinPoseEmulator>(emulator));
   // Advertise service
   ros::ServiceServer service =
       nh.advertiseService("bin_pose", &BinPoseEmulator::callback, &emulator);

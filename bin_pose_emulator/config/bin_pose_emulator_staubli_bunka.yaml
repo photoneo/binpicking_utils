@@ -1,11 +1,14 @@
-#bin_center_x: 1.28
-bin_center_x: 0.4
-bin_center_y: 0.0
-bin_center_z: 0.2
+#bin_center_x: 0.389
+bin_center_x: 0.425
+bin_center_y: -0.03
+bin_center_z: 0.09
 
-bin_size_x: 0.35
-bin_size_y: 0.2
-bin_size_z: 0.15
+bin_size_x: 0.53
+bin_size_y: 0.34
+bin_size_z: 0.11
+#bin_size_z: 0.083
+
+z_rotation: 0.0
 
 roll_default: 0
 pitch_default: 3.14
@@ -16,17 +19,24 @@ pitch_range: 0.7
 yaw_range: 6.2
 
 approach_distance: 0.10
-deapproach_height: 0.0
+deapproach_height: 0.10
 
 #Parametre iba pre stomp test
-step_x: 0.03
-step_y: 0.03
-step_z: 0.03
+step_x: 0.066
+step_y: 0.067
+step_z: 0.027
 
 step_roll: 0.3
 step_pitch: 0.3
 step_yaw: 0.6
 
 virtual_robot:
-  start_pose: [0.0, 0.0, 1.7, 0.0, 1.51, 0.00 ]
-  end_pose: [0.0, 0.0, 1.7, 0.0, 1.51, 0.00 ]
+#staubli
+#  start_pose: [0.0, 0.064, 0.25, 0.0, 1.205, 0.00 ]
+#  end_pose: [0.0, 0.064, 0.25, 0.0, 1.205, 0.00 ]
+# abb
+#  start_pose: [0.0, 0.0, 1.745, 0.0, 1.38, 0.00 ]
+#  end_pose: [0.0, 0.0, 1.745, 0.0, 1.38, 0.00 ]
+# kawasaki
+  start_pose: [1.6, 0.04, -1.39, 0.0, -1.46, 0.00 ]
+  end_pose: [1.6, 0.04, -1.39, 0.0, -1.46, 0.00 ]
