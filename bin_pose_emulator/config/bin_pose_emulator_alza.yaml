@@ -1,0 +1,36 @@
+#bin_center_x: 1.28
+bin_center_x: 0.9
+bin_center_y: -0.8
+bin_center_z: 0.75
+
+bin_size_x: 0.88
+bin_size_y: 1.15
+bin_size_z: 0.32
+
+x_rotation: -0.785
+y_rotation: 0.0
+z_rotation: 0.0
+
+roll_default: 0
+pitch_default: 3.14
+yaw_default: 0
+
+roll_range: 1
+pitch_range: 1
+yaw_range: 6.2
+
+approach_distance: 0.20
+deapproach_height: 0.350
+
+#Parametre iba pre stomp test
+step_x: 0.08
+step_y: 0.10
+step_z: 0.05
+
+step_roll: 0.25
+step_pitch: 0.25
+step_yaw: 1.0
+
+virtual_robot:
+  start_pose: [-0.659, 0.264, -0.266, 0.0, -1.036, 0.314 ]
+  end_pose: [-0.659, 0.264, -0.266, 0.0, -1.036, 0.314 ]

@@ -241,6 +241,8 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
     config_.approach_distance = config_file["approach_distance"].as<float>();
     config_.deapproach_height = config_file["deapproach_height"].as<float>();
 
+    config_.y_rotation = config_file["x_rotation"].as<float>();
+    config_.x_rotation = config_file["y_rotation"].as<float>();
     config_.z_rotation = config_file["z_rotation"].as<float>();
 
 #ifndef RANDOM_BIN_POSE
@@ -265,7 +267,7 @@ tf::Transform BinPoseEmulator::visualizeBin(void)
   tf::Transform transform_bin;
   transform_bin.setOrigin(tf::Vector3(config_.bin_center_x, config_.bin_center_y, config_.bin_center_z));
   tf::Quaternion q;
-  q.setRPY(0,0,config_.z_rotation);
+  q.setRPY(config_.x_rotation, config_.y_rotation,config_.z_rotation);
   transform_bin.setRotation(q);
   broadcaster_.sendTransform(tf::StampedTransform(transform_bin, ros::Time::now(),"base_link", "bin"));
 

@@ -39,6 +39,8 @@ struct ConfigData
   double bin_size_z;
 
     // Virtual Bin rotation around world Z axis
+  double x_rotation;
+  double y_rotation;
   double z_rotation;
 
   // Default tool point orientation
