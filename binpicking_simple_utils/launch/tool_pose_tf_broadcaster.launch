@@ -1,4 +1,0 @@
-<?xml version="1.0" ?>
-<launch>
-  <node pkg="binpicking_simple_utils" name="tool_pose_tf_broadcaster" type="tool_pose_tf_broadcaster" output="screen"/>   
-</launch>

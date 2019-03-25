@@ -1,8 +1,0 @@
-<launch>
-  <!-- Bin pose emulator -->
-  <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/>
-
-  <!-- Bin picking emulator -->
-  <node pkg="binpicking_emulator" name="binpicking_emulator" type="binpicking_emulator" output="screen"/>
-
-</launch>

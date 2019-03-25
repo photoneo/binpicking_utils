@@ -1,5 +1,0 @@
-int32 num_of_attempts
-int32 num_of_fails
-float32 average_time
-float32 average_joint_diff
-
