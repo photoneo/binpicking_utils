@@ -1074,8 +1074,8 @@ int main(int argc, char** argv)
       nh.advertiseService(BINPICKING_SERVICES::SCAN, &BinpickingEmulator::binPickingScanCallback, &emulator);
   ros::ServiceServer bin_picking_traj_service =
       nh.advertiseService(BINPICKING_SERVICES::TRAJECTORY, &BinpickingEmulator::binPickingTrajCallback, &emulator);
-  ros::ServiceServer bin_picking_scan_and_traj_service = nh.advertiseService(
-      BINPICKING_SERVICES::SCAN_AND_TRAJECTORY, &BinpickingEmulator::binPickingScanAndTrajCallback, &emulator);
+//  ros::ServiceServer bin_picking_scan_and_traj_service = nh.advertiseService(
+ //     BINPICKING_SERVICES::SCAN_AND_TRAJECTORY, &BinpickingEmulator::binPickingScanAndTrajCallback, &emulator);
   ros::ServiceServer bin_picking_init_service =
       nh.advertiseService(BINPICKING_SERVICES::INITIALIZE, &BinpickingEmulator::binPickingInitCallback, &emulator);
   ros::ServiceServer calibration_add_point_service =

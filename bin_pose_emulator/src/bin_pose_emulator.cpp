@@ -98,6 +98,29 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   return true;
 }
 
+bool BinPoseEmulator::getPose(geometry_msgs::Pose &pose, bool is_random) {
+
+  bool is_end = false;
+
+  if (is_random){
+    getRandomPose(pose);
+  }  else {
+    is_end = getNextPose(pose);
+  }
+
+  tf::Transform bin_transform = visualizeBin();
+  tf::Transform object_transform = broadcastPoseTF(pose);
+  tf::Transform result = bin_transform * object_transform;
+
+  pose.position.x = result.getOrigin().x();
+  pose.position.y = result.getOrigin().y();
+  pose.position.z = result.getOrigin().z();
+  pose.orientation.x = result.getRotation().x();
+  pose.orientation.y = result.getRotation().y();
+  pose.orientation.z = result.getRotation().z();
+  pose.orientation.w = result.getRotation().w();
+}
+
 void BinPoseEmulator::getRandomPose(geometry_msgs::Pose &pose) {
 
   pose.position.x = randGen( - config_.bin_size_x / 2, config_.bin_size_x / 2);

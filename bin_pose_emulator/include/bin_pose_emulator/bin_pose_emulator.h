@@ -71,6 +71,7 @@ public:
 
   bool callback(bin_pose_msgs::bin_pose::Request& req,
                 bin_pose_msgs::bin_pose::Response& res);
+  bool getPose(geometry_msgs::Pose &pose, bool is_random = true);
     bool getNextPose(geometry_msgs::Pose &pose);
     void getRandomPose(geometry_msgs::Pose &pose);
 
