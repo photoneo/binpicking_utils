@@ -1,5 +1,11 @@
-<?xml version="1.0" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <launch>
-  <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/> 
-  <!-- <param name="filepath" value="$(find bin_pose_emulator)/config/example_config.yaml"/> -->
+
+    <!-- Bin pose emulator -->
+    <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/>
+
+    <param name="filepath" value="$(find attached_part)/config/bin_pose_emulator.yaml"/>
+
+    <rosparam command="load" file="$(find attached_part)/config/bin_pose_emulator.yaml"/>
+
 </launch>
