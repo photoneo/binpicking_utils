@@ -35,8 +35,12 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
   }
 
   // Resize start and end pose arrays
-  start_pose_from_robot_.resize(num_of_joints_);
-  end_pose_from_robot_.resize(num_of_joints_);
+start_pose_from_robot_ = {-0.69, 1.15, 0.0, 0.0, -1.18, 0.0};
+end_pose_from_robot_ = {-0.69, 1.15, 0.0, 0.0, -1.18, 0.0};
+// start_pose_from_robot_.resize(num_of_joints_);
+ // end_pose_from_robot_.resize(num_of_joints_);
+
+ 	
 
   // Configure bin pose client
   bin_pose_client_ = nh->serviceClient<bin_pose_msgs::bin_pose>("bin_pose");
@@ -306,7 +310,7 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
     res.operations.push_back(binpicking_operation);
 
     // Operation 5 - Deapproach trajectory
-    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_FINE;
+    binpicking_operation.operation_type = OPERATION::TYPE::TRAJECTORY_CNT;
 
     binpicking_operation.points.clear();
     for (int i = 0; i < deapproach_traj_size; i++)
@@ -494,7 +498,7 @@ void BinpickingEmulator::visualizeTrajectory(trajectory_msgs::JointTrajectory tr
     marker.color.b = 0.9f;
     marker.color.a = 1.0;
 
-    marker.lifetime = ros::Duration(5);
+    marker.lifetime = ros::Duration(40);
     trajectory_pub_.publish(marker);
     ros::Duration(0.001).sleep();
   }
