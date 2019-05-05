@@ -86,12 +86,9 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   //---------------------------------------------------
   // Set Start state
   //---------------------------------------------------
-  group_->setJointValueTarget(start_pose_from_robot_);
-  group_->plan(to_start_pose);
-  start_traj_size = to_start_pose.trajectory_.joint_trajectory.points.size();
-  current_state.setJointGroupPositions(
-      "manipulator", to_start_pose.trajectory_.joint_trajectory.points[start_traj_size - 1].positions);
-  group_->setStartState(current_state);
+    // SetStartState instead of trajectory execution
+    current_state.setJointGroupPositions("manipulator", start_pose_from_robot_);
+    group_->setStartState(current_state);
 
   // Get random bin picking pose from emulator
   bin_pose_msgs::bin_pose srv;
@@ -107,8 +104,24 @@ bool BinpickingEmulator::binPickingTrajCallback(photoneo_msgs::operations::Reque
   //---------------------------------------------------
   // Plan trajectory from current to approach pose
   //---------------------------------------------------
-  group_->setPoseTarget(approach_pose);
-  moveit::planning_interface::MoveItErrorCode success_approach = group_->plan(to_approach_pose);
+
+  std::vector<double> joint_values;
+  bool found_ik = false;
+  robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
+  robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
+  robot_state::RobotStatePtr kinematic_state(new robot_state::RobotState(kinematic_model));
+  kinematic_state->setToDefaultValues();
+  const robot_state::JointModelGroup* joint_model_group = kinematic_model->getJointModelGroup("manipulator");
+  moveit::planning_interface::MoveItErrorCode success_approach;
+  success_approach = found_ik = kinematic_state->setFromIK(joint_model_group, approach_pose, 5, 0.005);
+
+  if (found_ik) {
+      kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
+
+      group_->setJointValueTarget(joint_values);
+      // group_->setPoseTarget(approach_pose);
+      success_approach = group_->plan(to_approach_pose);
+  }
   if (success_approach)
   {
     // Get trajectory size from plan
