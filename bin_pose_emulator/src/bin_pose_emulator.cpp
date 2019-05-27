@@ -15,7 +15,7 @@ limitations under the License.
  *********************************************************************/
 
 #include "bin_pose_emulator/bin_pose_emulator.h"
-#define RANDOM_BIN_POSE
+//#define RANDOM_BIN_POSE
 
 
 BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)

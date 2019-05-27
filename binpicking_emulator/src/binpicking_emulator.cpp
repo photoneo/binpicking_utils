@@ -293,7 +293,7 @@ void BinpickingEmulator::binPickingLoop(){
             waypoints[3].is_joint_space = true;
 
             if (last_point_.x == 0 && last_point_.y == 0 && last_point_.z == 0){
-                outfile_points_ << "X   Y   Z   grasp IK, approach IK, deapproach IK, planner1, planner2, planner3, planner4, continuity1, continuity2\n";
+                outfile_points_ << "X,  Y,  Z,  grasp IK, approach IK, deapproach IK, planner1, planner2, planner3, planner4, continuity1, continuity2\n";
             }
             if (last_point_.x != srv.response.grasp_pose.position.x || last_point_.y != srv.response.grasp_pose.position.y || last_point_.z != srv.response.grasp_pose.position.z){
                 outfile_points_ << point_id_ << ", " << last_point_.x << ", " << last_point_.y << ", " << last_point_.z << ", "
@@ -324,7 +324,7 @@ void BinpickingEmulator::binPickingLoop(){
         bool found_ik = false;
         moveit::planning_interface::MoveItErrorCode success_approach = false;
 
-        if(!kinematic_state->setFromIK(joint_model_group, waypoints[1].pose, 3, 0.005,
+        if(!kinematic_state->setFromIK(joint_model_group, waypoints[1].pose, "tool1", 3, 0.005,
                                               groupStateValidityCallbackFn)){
             ROS_ERROR("IK failed on point %d", point_id_);
             outfile_fails_ik_ << "IK fail: " << 1 << "\n";
@@ -341,7 +341,7 @@ void BinpickingEmulator::binPickingLoop(){
             } else {
                 // Find IK in approach pose
                 //---------------------------------------------------
-                found_ik = kinematic_state->setFromIK(joint_model_group, waypoints[i].pose, 3, 0.005,
+                found_ik = kinematic_state->setFromIK(joint_model_group, waypoints[i].pose, "tool1", 3, 0.005,
                                                       groupStateValidityCallbackFn);
             }
             double time = 0;

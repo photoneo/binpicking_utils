@@ -41,7 +41,7 @@ public:
 
         std::string str;
 
-        infile.open("/home/controller/catkin_ws/planner_test/points_test_VW.txt",  std::ifstream::in);
+        infile.open("/home/controller/catkin_ws/planner_test/points.txt",  std::ifstream::in);
 
         cloud_.points.clear();
         cloud_.channels.resize(3);

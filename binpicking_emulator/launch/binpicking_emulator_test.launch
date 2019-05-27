@@ -1,0 +1,15 @@
+<launch>
+
+  <arg name="test" default="true"/>
+
+ <!--Pouzi si nejaky vygenerovany pho_global_moveit_config-->
+ <include file="$(find pho_global_moveit_config)/launch/demo.launch" />
+
+ <!--include file="$(find test_moveit_config)/launch/demo.launch" /-->
+
+  <!--==========Bin pose emulator for test================-->
+  <param name="filepath" value="$(find bin_pose_emulator)/config/bin_pose_emulator.yaml" if="$(arg test)"/>
+  <rosparam command="load" file="$(find bin_pose_emulator)/config/bin_pose_emulator.yaml"/>
+  <include file="$(find binpicking_emulator)/launch/binpicking_emulator.launch" if="$(arg test)" />
+
+</launch>
