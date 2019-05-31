@@ -7,7 +7,7 @@
 
 #include <pho_localization_msgs/LocalizationObject.h>
 #include <sensor_msgs/PointCloud2.h>
-
+#include <pho_localization_msgs/PointCloud.h>
 
 
 ActionServerInterface::ActionServerInterface( std::shared_ptr<BinPoseEmulator> emulator) :
@@ -24,7 +24,7 @@ emulator_(emulator)
     as_->start();
 
     ros::AdvertiseOptions ops;
-    ops.template init<sensor_msgs::PointCloud2>("point_cloud", 1);
+    ops.template init<pho_localization_msgs::PointCloud>("binpicking_cloud", 1);
     ops.latch = false;
     ops.has_header = false;
     cloud_publisher_ = nh_.advertise(ops);
@@ -60,13 +60,18 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
 
 void ActionServerInterface::publishEmptyCloud(uint32_t header_seq) {
 
-    sensor_msgs::PointCloud2 cloud_msg;
+    pho_localization_msgs::PointCloud cloud_msg;
+  //  geometry_msgs::Transform tr(1.823,-0.365,1.499, 1);
+   // cloud_msg.sensorOrigin = Eigen::Vector4f(1.823,-0.365,1.499, 1);
+
+    cloud_msg.scanType.val = 1;
+
  //   pcl::toROSMsg(cloud, cloudMsg);
    // std::cout << cloudMsg.header.frame_id << std::endl;
-    cloud_msg.header.stamp = ros::Time::now();
-    cloud_msg.header.frame_id = "base_link";
+    cloud_msg.pointCloud.header.stamp = ros::Time::now();
+    cloud_msg.pointCloud.header.frame_id = "base_link";
    // std::cout << "header seq " << headerSeq << std::endl;
-    cloud_msg.header.seq = header_seq;
+    cloud_msg.pointCloud.header.seq = header_seq;
    // std::cout << cloud_msg.header.seq << std::endl;
     cloud_publisher_.publish(cloud_msg);
    // std::cout << cloud_msg.header.seq << std::endl;
