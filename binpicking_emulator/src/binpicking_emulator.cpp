@@ -1016,7 +1016,7 @@ void BinpickingEmulator::visualizeTrajectory(trajectory_msgs::JointTrajectory tr
   for (int i = 0; i < trajectory.points.size(); i++)
   {
     kinematic_state->setJointGroupPositions("manipulator", trajectory.points[i].positions);
-    const Eigen::Affine3d& end_effector_state = kinematic_state->getGlobalLinkTransform("tool0");
+    const Eigen::Affine3d& end_effector_state = kinematic_state->getGlobalLinkTransform("tool1");
 
     marker.header.stamp = ros::Time::now();
     marker.id = trajectory_marker_index_++;
