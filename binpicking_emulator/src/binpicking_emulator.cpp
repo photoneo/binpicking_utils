@@ -224,8 +224,8 @@ void BinpickingEmulator::binPickingLoop(){
     bool use_linear_path = false;
 
     ros::NodeHandle nh;
-    nh.getParam("/virtual_robot/start_pose", start_pose_from_robot_);
-    nh.getParam("/virtual_robot/end_pose", end_pose_from_robot_);
+    nh.getParam("/start_pose", start_pose_from_robot_);
+    nh.getParam("/end_pose", end_pose_from_robot_);
 
     nh.getParam("/virtual_robot/use_linear_path", use_linear_path);
     nh.getParam("/virtual_robot/log_path", log_path_);
