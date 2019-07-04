@@ -289,7 +289,7 @@ void BinpickingEmulator::binPickingLoop(){
             waypoints[2].is_linear = true;
             waypoints[2].is_joint_space = false;
             waypoints[3].end_joint_state = end_pose_from_robot_;
-            waypoints[2].is_linear = false;
+            waypoints[3].is_linear = false;
             waypoints[3].is_joint_space = true;
 
             if (last_point_.x == 0 && last_point_.y == 0 && last_point_.z == 0){
