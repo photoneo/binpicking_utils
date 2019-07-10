@@ -24,7 +24,7 @@ emulator_(emulator)
     as_->start();
 
     ros::AdvertiseOptions ops;
-    ops.template init<pho_localization_msgs::PointCloud>("binpicking_cloud", 1);
+    ops.template init<pho_localization_msgs::PointCloud>("pointcloud", 1);
     ops.latch = false;
     ops.has_header = false;
     cloud_publisher_ = nh_.advertise(ops);
@@ -32,18 +32,19 @@ emulator_(emulator)
 
 void ActionServerInterface::actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal) {
 
-    static int object_id = 0;
-    std::cout << "Goal id " << goal->id << std::endl;
-    publishEmptyCloud(goal->id);
+    int object_id = 0;
+    static int p_frame = 0;
+    publishEmptyCloud(p_frame);
 
     sleep(2);
     pho_localization::ScanAndLocateFeedback feedback;
     for (int i = 0; i < 10; i++) {
-        feedback.object.header.seq = goal->id;
+        feedback.object.header.seq = object_id;
         feedback.object.header.frame_id = "base_link";
-        feedback.object.id = object_id;
+        feedback.object.header.stamp = ros::Time::now();
+        feedback.object.id = object_id++;
         feedback.object.occluded = false;
-        feedback.object.p_frame_id = object_id++;
+        feedback.object.p_frame_id = p_frame;
         feedback.object.visibleOverlap = true;
         emulator_->getPose(feedback.object.pose);
         ROS_INFO_STREAM(feedback.object);
@@ -55,6 +56,7 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
     result.error_code.val = pho_localization_msgs::PhoLocalizationErrorCodes::SUCCESS;
     as_->setSucceeded(result);
 
+    p_frame++;
 }
 
 
