@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
   // Create emulator object
   BinPoseEmulator emulator(&nh, filepath);
 
-  ActionServerInterface actionServer(std::make_shared<BinPoseEmulator>(emulator));
+  ActionServerInterface actionServer(filepath);
   // Advertise service
   ros::ServiceServer service =
       nh.advertiseService("bin_pose", &BinPoseEmulator::callback, &emulator);

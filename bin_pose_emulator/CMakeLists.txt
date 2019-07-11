@@ -8,43 +8,66 @@ find_package(catkin REQUIRED
     bin_pose_msgs
     tf
    sensor_msgs
-        pho_localization_msgs
-        actionlib
-        actionlib_msgs
-        sensor_msgs
+   pho_localization_msgs
+   actionlib
+   actionlib_msgs
+   sensor_msgs
 
         )
 
-catkin_package()
+find_package(Eigen3 REQUIRED)
+
+find_package(PCL REQUIRED)
+
+catkin_package(
+        INCLUDE_DIRS include
+)
 
 include_directories(
+  include
   ${catkin_INCLUDE_DIRS}
-  ${PROJECT_SOURCE_DIR}/include/)
+  ${EIGEN_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
+
+)
 
 add_executable(
   ${PROJECT_NAME}
   src/bin_pose_emulator.cpp
-        src/bin_pose_emulator_node.cpp
-    src/ActionServerInterface.cpp)
+  src/bin_pose_emulator_node.cpp
+  src/ActionServerInterface.cpp
+  src/pose_generator/PoseGeneratorBase.cpp
+  src/pose_generator/PoseGeneratorFromCube.cpp
+  src/pose_generator/PoseGeneratorFromCubeRandom.cpp
+)
 
-add_executable(
-        visualizer
-        src/visualizer.cpp
-        src/bin_pose_emulator.cpp)
+
+#add_executable(
+#        visualizer
+#        src/visualizer.cpp
+#        src/bin_pose_emulator.cpp
+#        src/pose_generator/PoseGeneratorBase.cpp)
   
 add_dependencies(bin_pose_emulator ${catkin_EXPORTED_TARGETS})
-add_dependencies(visualizer ${catkin_EXPORTED_TARGETS})
+#add_dependencies(visualizer ${catkin_EXPORTED_TARGETS})
 
+include_directories(${PCL_INCLUDE_DIRS})
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 target_link_libraries(
   ${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
   yaml-cpp)
 
-target_link_libraries(
-        visualizer
-        ${catkin_LIBRARIES}
-        yaml-cpp)
+
+
+#target_link_libraries(
+#        visualizer
+#        ${catkin_LIBRARIES}
+#        ${PCL_LIBRARIES}
+#        yaml-cpp)
 
 # binaries
 install(TARGETS

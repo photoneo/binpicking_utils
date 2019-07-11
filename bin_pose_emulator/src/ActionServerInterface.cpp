@@ -8,14 +8,13 @@
 #include <pho_localization_msgs/LocalizationObject.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pho_localization_msgs/PointCloud.h>
+#include <bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h>
 
-
-ActionServerInterface::ActionServerInterface( std::shared_ptr<BinPoseEmulator> emulator) :
-nh_("vision_system_1"),
-emulator_(emulator)
+ActionServerInterface::ActionServerInterface( std::string filepath) :
+nh_("vision_system_1")
 {
-
-  //  emulator_ = emulator;
+    pose_generator_ = std::make_shared<PoseGeneratorFromCubeRandom>(nh_);
+    pose_generator_->parseConfig(filepath);
 
     as_.reset(new actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction>
             (nh_, "scan_and_locate", boost::bind(&ActionServerInterface::actionServerCallback, this, _1), false));
@@ -46,7 +45,7 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
         feedback.object.occluded = false;
         feedback.object.p_frame_id = p_frame;
         feedback.object.visibleOverlap = true;
-        emulator_->getPose(feedback.object.pose);
+        pose_generator_->getPose(feedback.object.pose);
         ROS_INFO_STREAM(feedback.object);
         as_->publishFeedback(feedback);
         ros::Duration(0.5).sleep();
