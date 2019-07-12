@@ -40,15 +40,11 @@ public:
 protected:
     virtual void visualizeBin();
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> space;
+    pose_generator::ConfigData config_;
 
 private:
     ros::Publisher point_cloud_pub_;
     sensor_msgs::PointCloud2 point_cloud_msg_;
-    pose_generator::ConfigData config_;
-
-
-
-
 };
 
 #endif //PROJECT_POSEGENERATORFROMPOINTCLOUD_H

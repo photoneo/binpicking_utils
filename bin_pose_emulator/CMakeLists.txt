@@ -40,6 +40,7 @@ add_executable(
   src/pose_generator/PoseGeneratorFromCube.cpp
   src/pose_generator/PoseGeneratorFromCubeRandom.cpp
   src/pose_generator/PoseGeneratorFromPointCloud.cpp
+  src/pose_generator/PoseGeneratorFromPointCloudRandom.cpp
 )
 
 
