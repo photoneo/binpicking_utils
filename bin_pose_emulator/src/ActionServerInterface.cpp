@@ -8,12 +8,13 @@
 #include <pho_localization_msgs/LocalizationObject.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <pho_localization_msgs/PointCloud.h>
-#include <bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h>
+//#include <bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h>
+#include <bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloud.h>
 
 ActionServerInterface::ActionServerInterface( std::string filepath) :
 nh_("vision_system_1")
 {
-    pose_generator_ = std::make_shared<PoseGeneratorFromCubeRandom>(nh_);
+    pose_generator_ = std::make_shared<PoseGeneratorFromPointCloud>(nh_);
     pose_generator_->parseConfig(filepath);
 
     as_.reset(new actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction>

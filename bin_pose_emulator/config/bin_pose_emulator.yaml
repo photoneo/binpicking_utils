@@ -29,4 +29,6 @@ step_roll: 0.3
 step_pitch: 0.3
 step_yaw: 0.6
 
+mesh: "/home/controller/catkin_ws/src/pcl_binvox/data/object_1.ply"
+
 start_pose: [1.6, 0.04, -1.39, 0.0, -1.46, 0.00]

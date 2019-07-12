@@ -20,7 +20,7 @@ limitations under the License.
 
 BinPoseEmulator::BinPoseEmulator(ros::NodeHandle* nh, std::string filepath)
 {
-  parseConfig(filepath); // parse yaml config file
+  //parseConfig(filepath); // parse yaml config file
   srandom(time(NULL));   // initialize random generator
 
   marker_pub_ =
