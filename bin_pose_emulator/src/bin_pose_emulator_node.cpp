@@ -15,29 +15,20 @@ limitations under the License.
  *********************************************************************/
 
 #include "bin_pose_emulator/bin_pose_emulator.h"
-#include "bin_pose_emulator/ActionServerInterface.h"
-
-//#define RANDOM_BIN_POSE
-
 
 int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "bin_pose_emulator");
-  ros::NodeHandle nh;
 
   // Get config filepath from ROS Param server
+  ros::NodeHandle nh_file;
   std::string filepath;
-  nh.getParam("filepath", filepath);
+  nh_file.getParam("filepath", filepath);
 
   // Create emulator object
-  BinPoseEmulator emulator(&nh, filepath);
+  ros::NodeHandle nh("vision_system_1");
+  BinPoseEmulator emulator(nh, filepath);
 
-  ActionServerInterface actionServer(filepath);
-  // Advertise service
-  ros::ServiceServer service =
-      nh.advertiseService("bin_pose", &BinPoseEmulator::callback, &emulator);
-
-  ROS_WARN("creating service");
   ros::spin();
 
   return EXIT_SUCCESS;

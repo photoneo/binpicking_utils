@@ -96,9 +96,6 @@ bool PoseGeneratorFromCube::parseConfig(std::string filepath) {
         config_.pitch_range = config_file["pitch_range"].as<float>();
         config_.yaw_range = config_file["yaw_range"].as<float>();
 
-        config_.approach_distance = config_file["approach_distance"].as<float>();
-        config_.deapproach_height = config_file["deapproach_height"].as<float>();
-
         config_.y_rotation = config_file["x_rotation"].as<float>();
         config_.x_rotation = config_file["y_rotation"].as<float>();
         config_.z_rotation = config_file["z_rotation"].as<float>();
@@ -109,6 +106,7 @@ bool PoseGeneratorFromCube::parseConfig(std::string filepath) {
         config_.step_roll = config_file["step_roll"].as<float>();
         config_.step_pitch = config_file["step_pitch"].as<float>();
         config_.step_yaw = config_file["step_yaw"].as<float>();
+
         ROS_WARN("config parsed %s", filepath.c_str());
 
         transform_bin_.setOrigin(tf::Vector3(config_.bin_center_x, config_.bin_center_y, config_.bin_center_z));

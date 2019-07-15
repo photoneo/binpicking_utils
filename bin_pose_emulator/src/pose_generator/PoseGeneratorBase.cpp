@@ -11,11 +11,11 @@ PoseGeneratorBase::PoseGeneratorBase(ros::NodeHandle &nh){
     marker_pub_ = nh.advertise<visualization_msgs::Marker>("bin_pose_visualization", 1);
 }
 
-bool PoseGeneratorBase::getPose(geometry_msgs::Pose &pose){
+bool PoseGeneratorBase::getPose(geometry_msgs::Pose &pose, double approach_distance){
 
     visualizeBin();
     generate(pose);
-    visualizePose(pose);
+    visualizePose(pose, approach_distance);
 }
 
 tf::Transform PoseGeneratorBase::broadcastPoseTF(const geometry_msgs::Pose &grasp_pose)

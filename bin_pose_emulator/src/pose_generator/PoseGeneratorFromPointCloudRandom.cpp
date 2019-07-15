@@ -6,7 +6,7 @@
 #include "bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloudRandom.h"
 
 PoseGeneratorFromPointCloudRandom::PoseGeneratorFromPointCloudRandom(ros::NodeHandle &nh) : PoseGeneratorFromPointCloud(nh){
-
+    srandom(time(NULL));
 }
 
 bool PoseGeneratorFromPointCloudRandom::generate(geometry_msgs::Pose &pose) {

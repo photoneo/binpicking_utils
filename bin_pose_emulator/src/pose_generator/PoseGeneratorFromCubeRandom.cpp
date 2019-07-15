@@ -6,7 +6,7 @@
 #include "bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h"
 
 PoseGeneratorFromCubeRandom::PoseGeneratorFromCubeRandom(ros::NodeHandle &nh) : PoseGeneratorFromCube(nh){
-
+    srandom(time(NULL));
 }
 
 bool PoseGeneratorFromCubeRandom::generate(geometry_msgs::Pose &pose) {

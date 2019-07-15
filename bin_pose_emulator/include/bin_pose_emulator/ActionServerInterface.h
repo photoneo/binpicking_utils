@@ -17,19 +17,20 @@
 class ActionServerInterface{
 
 public:
-    ActionServerInterface(std::string filepath);
+    ActionServerInterface(ros::NodeHandle &nh, std::string filepath);
 
     void actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal);
+protected:
+    std::shared_ptr<PoseGeneratorBase> pose_generator_;
 
 private:
 
     std::shared_ptr<actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction> > as_;
-    ros::Publisher cloud_publisher_;
+    ros::Publisher statusPublisher;
     ros::NodeHandle nh_;
 
-    std::shared_ptr<PoseGeneratorBase> pose_generator_;
-
-    void publishEmptyCloud(uint32_t header_seq);
+    void publishEmptyCloud(int frameId);
+    void acquisitionComplete(int frameId);
 };
 
 #endif //PROJECT_ACTIONSERVER_H

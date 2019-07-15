@@ -34,10 +34,6 @@ namespace pose_generator {
         double pitch_range;
         double yaw_range;
 
-        // Planning constraints
-        double approach_distance;
-        double deapproach_height;
-
         double step_x;
         double step_y;
         double step_z;
