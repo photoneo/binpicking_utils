@@ -53,6 +53,7 @@ public:
         bool is_linear;
         bool is_joint_space;
         geometry_msgs::Pose pose;
+        std::vector<double> joint_state;
         std::vector<double> end_joint_state;
     };
 
@@ -88,6 +89,8 @@ private:
     void createStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose);
 
     bool checkCartesianContinuity(moveit_msgs::RobotTrajectory &trajectory, float limit);
+
+    geometry_msgs::Pose forwardKinematic(robot_state::RobotStatePtr kinematic_state, const robot_state::JointModelGroup* jmg, std::vector<double> &joint_state);
 
     int num_of_joints_;
   std::vector<double> start_pose_from_robot_;

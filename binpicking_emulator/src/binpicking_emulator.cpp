@@ -352,6 +352,7 @@ void BinpickingEmulator::binPickingLoop(){
                 if (!waypoints[i].is_joint_space) {
                     kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
                     group_->setJointValueTarget(joint_values);
+                    waypoints[i].joint_state = joint_values;
 
                 } else{
                     group_->setJointValueTarget(waypoints[i].end_joint_state);
@@ -366,8 +367,8 @@ void BinpickingEmulator::binPickingLoop(){
 
                 if (waypoints[i].is_linear){
                     std::vector<geometry_msgs::Pose> linear_waypoints;
-                    linear_waypoints.push_back(waypoints[i - 1].pose);
-                    linear_waypoints.push_back(waypoints[i].pose);
+                    linear_waypoints.push_back(forwardKinematic(kinematic_state, joint_model_group, waypoints[i - 1].joint_state));
+                    linear_waypoints.push_back(forwardKinematic(kinematic_state, joint_model_group, waypoints[i].joint_state));
                     success_approach = group_->computeCartesianPath(linear_waypoints, 0.01, 0, trajectory, false);
 
                 } else{
@@ -998,6 +999,28 @@ bool BinpickingEmulator::calibrationResetCallback(std_srvs::Trigger::Request& re
 
   res.success = true;
   return true;
+}
+
+geometry_msgs::Pose BinpickingEmulator::forwardKinematic(robot_state::RobotStatePtr kinematic_state, const robot_state::JointModelGroup* jmg,std::vector<double> &joint_state){
+    kinematic_state->setJointGroupPositions(jmg, joint_state);
+    Eigen::Affine3d end_effector_state = kinematic_state->getGlobalLinkTransform("tool0");
+
+    Eigen::Quaterniond q_pos(end_effector_state.rotation());
+    auto tr = end_effector_state.translation();
+
+    ROS_INFO_STREAM("Translation:\r\n" << end_effector_state.translation());
+    ROS_INFO_STREAM("Rotation:\r\n" << end_effector_state.rotation());
+    ROS_INFO_STREAM("Qauternion rotation:\r\n" << q_pos.vec());
+
+    geometry_msgs::Pose target_pose;
+    target_pose.position.x = tr[0];
+    target_pose.position.y = tr[1];
+    target_pose.position.z = tr[2];
+    target_pose.orientation.x = q_pos.x();
+    target_pose.orientation.y = q_pos.y();
+    target_pose.orientation.z = q_pos.z();
+    target_pose.orientation.w = q_pos.w();
+    return target_pose;
 }
 
 void BinpickingEmulator::visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory)
