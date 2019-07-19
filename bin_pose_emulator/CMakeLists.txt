@@ -25,7 +25,8 @@ add_executable(
   ${PROJECT_NAME}
   src/bin_pose_emulator.cpp
         src/bin_pose_emulator_node.cpp
-    src/ActionServerInterface.cpp)
+#    src/ActionServerInterface.cpp
+)
 
 add_executable(
         visualizer

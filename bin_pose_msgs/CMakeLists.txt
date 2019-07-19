@@ -7,14 +7,21 @@ find_package(catkin REQUIRED COMPONENTS
   message_generation
   genmsg)
 
-add_service_files(
+add_message_files(DIRECTORY msg
+        FILES
+        bin_pose_ms.msg
+)
+
+add_service_files(DIRECTORY srv
   FILES
   bin_pose.srv
+  bin_pose_vector.srv
   change_data.srv)
 
 generate_messages(
   DEPENDENCIES geometry_msgs std_msgs
 )
+
 
 
 catkin_package(

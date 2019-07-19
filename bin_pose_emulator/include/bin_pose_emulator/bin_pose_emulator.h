@@ -24,7 +24,7 @@ limitations under the License.
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_broadcaster.h>
 #include <bin_pose_msgs/bin_pose.h>
-
+#include <bin_pose_msgs/bin_pose_vector.h>
 
 struct ConfigData
 {
@@ -73,8 +73,12 @@ public:
 
   bool callback(bin_pose_msgs::bin_pose::Request& req,
                 bin_pose_msgs::bin_pose::Response& res);
+
+    bool callbackVect(bin_pose_msgs::bin_pose_vector::Request& req,
+                  bin_pose_msgs::bin_pose_vector::Response& res);
   bool getPose(geometry_msgs::Pose &pose, bool is_random = true);
     bool getNextPose(geometry_msgs::Pose &pose);
+    int getNextPose2(geometry_msgs::Pose &pose);
     void getRandomPose(geometry_msgs::Pose &pose);
 
 protected:

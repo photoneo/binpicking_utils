@@ -98,6 +98,77 @@ bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
   return true;
 }
 
+
+
+
+bool BinPoseEmulator::callbackVect(bin_pose_msgs::bin_pose_vector::Request& req,
+                               bin_pose_msgs::bin_pose_vector::Response& res)
+{
+
+    ROS_ERROR("idem robit response");
+    geometry_msgs::Pose grasp_pose;
+  int isEnd;
+do {
+  isEnd = getNextPose2(grasp_pose);
+
+  if (isEnd == 2)
+    return false;
+
+
+  tf::Transform bin_transform = visualizeBin();
+  tf::Transform object_transform = broadcastPoseTF(grasp_pose);
+  tf::Transform result = bin_transform * object_transform;
+
+  grasp_pose.position.x = result.getOrigin().x();
+  grasp_pose.position.y = result.getOrigin().y();
+  grasp_pose.position.z = result.getOrigin().z();
+  grasp_pose.orientation.x = result.getRotation().x();
+  grasp_pose.orientation.y = result.getRotation().y();
+  grasp_pose.orientation.z = result.getRotation().z();
+  grasp_pose.orientation.w = result.getRotation().w();
+
+  tf::Quaternion grasp_orientation = result.getRotation();
+
+  bin_pose_msgs::bin_pose_ms msg;
+  msg.grasp_pose = grasp_pose;
+  //res.grasp_pose = grasp_pose;
+
+  //------------------------------------------------------------------------------------------
+  // Calculate Approach pose according to existing grasp pose
+  geometry_msgs::Pose approach_pose;
+
+  tf::Vector3 vector(0, 0, 1);
+  tf::Vector3 rotated_vector = tf::quatRotate(grasp_orientation, vector);
+
+  approach_pose.position.x =
+          grasp_pose.position.x - config_.approach_distance * rotated_vector.getX();
+  approach_pose.position.y =
+          grasp_pose.position.y - config_.approach_distance * rotated_vector.getY();
+  approach_pose.position.z =
+          grasp_pose.position.z - config_.approach_distance * rotated_vector.getZ();
+
+  approach_pose.orientation = grasp_pose.orientation;
+  msg.approach_pose = approach_pose;
+  //res.approach_pose = approach_pose;
+
+  visualizePose(grasp_pose, approach_pose);
+
+  //-------------------------------------------------------------------------------------------
+  // Calculate Deapproach point according to exitsing grasp pose
+  geometry_msgs::Pose deapproach_pose;
+
+  deapproach_pose = grasp_pose;
+  deapproach_pose.position.z =
+          deapproach_pose.position.z + config_.deapproach_height;
+
+  //res.deapproach_pose = deapproach_pose;
+  msg.deapproach_pose = deapproach_pose;
+
+  res.poses.push_back(msg);
+}while(isEnd==0);
+    return true;
+}
+
 bool BinPoseEmulator::getPose(geometry_msgs::Pose &pose, bool is_random) {
 
   bool is_end = false;
@@ -210,6 +281,89 @@ bool BinPoseEmulator::getNextPose(geometry_msgs::Pose &pose) {
 //  pose->orientation.w = -0.0763054;
 
   return false;
+}
+
+
+int BinPoseEmulator::getNextPose2(geometry_msgs::Pose &pose) {
+  static double x =  -config_.bin_size_x / 2;
+  static double y =  -config_.bin_size_y / 2;
+  static double z =  -config_.bin_size_z / 2;
+
+  static double roll = config_.roll_default -config_.roll_range / 2;
+  static double pitch = config_.pitch_default -config_.pitch_range / 2;
+  static double yaw = config_.yaw_default -config_.yaw_range / 2;
+
+  yaw += config_.step_yaw;
+  if (yaw >= config_.yaw_default + config_.yaw_range / 2){
+    yaw = config_.yaw_default - config_.yaw_range / 2;
+    pitch += config_.step_pitch;
+
+    if (pitch >= config_.pitch_default + config_.pitch_range / 2) {
+      pitch = config_.pitch_default - config_.pitch_range / 2;
+      roll += config_.step_roll;
+
+      if (roll >= config_.roll_default + config_.roll_range / 2) {
+        roll = config_.roll_default - config_.roll_range / 2;
+        x += config_.step_x;
+
+        if (x >= config_.bin_size_x / 2) {
+          x = -config_.bin_size_x / 2;
+          y += config_.step_y;
+
+          if (y >= config_.bin_size_y / 2) {
+            y = -config_.bin_size_y / 2;
+            z += config_.step_z;
+
+            if (z >= config_.bin_size_z / 2) {
+
+              x = -config_.bin_size_x / 2;
+              y = -config_.bin_size_y / 2;
+              z = -config_.bin_size_z / 2;
+
+              roll = config_.roll_default -config_.roll_range / 2;
+              pitch = config_.pitch_default -config_.pitch_range / 2;
+              yaw = config_.yaw_default -config_.yaw_range / 2;
+              return 2;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  pose.position.x = x;
+  pose.position.y = y;
+  pose.position.z = z;
+
+  tf::Quaternion grasp_orientation;
+  grasp_orientation.setRPY(roll, pitch, yaw);
+  pose.orientation.x = grasp_orientation.getX();
+  pose.orientation.y = grasp_orientation.getY();
+  pose.orientation.z = grasp_orientation.getZ();
+  pose.orientation.w = grasp_orientation.getW();
+
+//  pose->position.x = 1.475;
+//  pose->position.y = -0.175;
+//  pose->position.z = 0.45;
+
+//  pose->orientation.x = 0.248386;
+//  pose->orientation.y = 0.945193;
+//  pose->orientation.z = 0.197716;
+//  pose->orientation.w = -0.0763054;
+
+  ///overenie ci dalsi krok nebude novy bod.. ak ano, tak return ma inu hodnotu
+  if (yaw +config_.step_yaw>= config_.yaw_default + config_.yaw_range / 2) {
+
+
+    if (pitch+config_.step_pitch >= config_.pitch_default + config_.pitch_range / 2) {
+
+      if (roll+config_.step_roll >= config_.roll_default + config_.roll_range / 2) {
+            return 1;
+      }
+    }
+  }
+
+  return 0;
 }
 
 double BinPoseEmulator::randGen(double fMin, double fMax)

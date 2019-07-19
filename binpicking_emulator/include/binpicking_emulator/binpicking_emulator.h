@@ -24,6 +24,8 @@ limitations under the License.
 #include <visualization_msgs/Marker.h>
 #include <tf/transform_broadcaster.h>
 #include <bin_pose_msgs/bin_pose.h>
+#include <bin_pose_msgs/bin_pose_vector.h>
+
 #include <photoneo_msgs/operations.h>
 #include <photoneo_msgs/operation.h>
 #include <photoneo_msgs/initialize_pose.h>
@@ -44,8 +46,11 @@ limitations under the License.
 #include <stomp_param_changer/statistics.h>
 
 #include "binpicking_emulator/path_length_test.h"
+#include "binpicking_emulator/kinematic.h"
+#include "binpicking_emulator/MoveGroupOwn.h"
+#include <mutex>
 
-
+#define THREADS_COUNT 6
 class BinpickingEmulator
 {
 public:
@@ -53,12 +58,12 @@ public:
         bool is_linear;
         bool is_joint_space;
         geometry_msgs::Pose pose;
-        std::vector<double> end_joint_state;
+        std::vector<double> joint_state;
     };
 
   BinpickingEmulator(ros::NodeHandle* nh);
   ~BinpickingEmulator();
-
+  void binPickingThreadsLoops();
   bool binPickingScanCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool binPickingTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
   bool binPickingScanAndTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
@@ -67,7 +72,7 @@ public:
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
     void binPickingLoopSimpleTraj();
-    void binPickingLoop();
+    void binPickingLoop(int id=0);
     bool makePlan(const geometry_msgs::Pose &pose, bool isLinear = false);
     bool isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
                            robot_state::RobotState* state,
@@ -81,22 +86,27 @@ private:
 
   robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
   moveit::planning_interface::MoveGroupInterfacePtr group_;
-
+    std::vector<MoveGroup*> groupOwn;
+    MoveGroup *groupTest;
+    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
+    boost::shared_ptr<tf::TransformListener> tf;
 
     void publishResult();
     void writeToFile();
     void createStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose);
 
-    bool checkCartesianContinuity(moveit_msgs::RobotTrajectory &trajectory, float limit);
+    bool checkCartesianContinuity(trajectory_msgs::JointTrajectory &trajectory, float limit);
 
     int num_of_joints_;
   std::vector<double> start_pose_from_robot_;
   std::vector<double> end_pose_from_robot_;
 
   int trajectory_marker_index_;
-
+    const float rs[10]={1.0,0.0,0.0,1.0,1.0,0.0,1.0,0.0,0.5,0.0};
+    const float gs[10]={0.0,1.0,0.0,1.0,0.0,1.0,1.0,0.0,0.5,0.5};
+    const float bs[10]={0.0,0.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,1.0};
   // Functions
-  void visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory);
+  void visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory, int color=0);
 
     std::ofstream outfile_fails_stomp_;
     std::ofstream outfile_fails_ik_;
@@ -127,6 +137,8 @@ private:
     std::vector<int> continuity_checker_;
     int point_id_;
     geometry_msgs::Point last_point_;
+    std::mutex mutex_goals;
+    std::mutex mutex_file;
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H

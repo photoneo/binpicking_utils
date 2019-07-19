@@ -27,7 +27,9 @@ include_directories(
 add_executable(
   binpicking_emulator
   src/binpicking_emulator.cpp
-  src/path_length_test.cpp)
+  src/path_length_test.cpp
+        src/MoveGroupOwn.cpp
+src/kinematic.cpp)
 
 add_dependencies(binpicking_emulator ${catkin_EXPORTED_TARGETS})
 

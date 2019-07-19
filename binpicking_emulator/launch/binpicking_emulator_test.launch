@@ -1,11 +1,13 @@
 <launch>
 
   <arg name="test" default="true"/>
-
- <!--Pouzi si nejaky vygenerovany pho_global_moveit_config-->
- <include file="$(find pho_global_moveit_config)/launch/demo.launch" />
-
- <!--include file="$(find test_moveit_config)/launch/demo.launch" /-->
+    <!--=========Load robot model, Moveit, Rviz, robot state publisher================-->
+    <include file="$(find pho_robot_loader)/launch/robot_moveit_loader.launch">
+        <arg name="moveit_config_package" value="$(find pho_global_moveit_config)"/>
+        <arg name="use_state_listener" value="false"/>
+        <arg name="use_rviz" value="false"/>
+	<arg name="planner_type" value="ompl"/>
+    </include>
 
   <!--==========Bin pose emulator for test================-->
   <param name="filepath" value="$(find bin_pose_emulator)/config/bin_pose_emulator.yaml" if="$(arg test)"/>
