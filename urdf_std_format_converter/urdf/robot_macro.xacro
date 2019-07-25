@@ -1,0 +1,186 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="abb_irb1520id_4_150" params="prefix">
+
+  <!-- link list -->
+  <link name="${prefix}base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/visual/base_link.stl"/>
+      </geometry>
+      <material name="orange">
+        <color rgba="0.7 0.25 0 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/collision/base_link.stl"/>
+      </geometry>
+      <material name="yellow">
+        <color rgba="0 1 1 1"/>
+      </material>
+    </collision>
+  </link>
+    
+  <link name="${prefix}link_1">
+    <visual>
+	    <origin xyz="0 0 0" rpy="1.570796 0 0"/>
+	    <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/visual/link_1.stl"/>
+	    </geometry>	 
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/collision/link_1.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </collision>
+  </link>
+    
+  <link name="${prefix}link_2">
+    <visual>
+	    <origin xyz="0 0 0" rpy="1.570796 0 0"/>
+	    <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/visual/link_2.stl"/>
+	    </geometry>	 
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/collision/link_2.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </collision>
+  </link>
+    
+  <link name="${prefix}link_3">
+    <visual>
+	    <origin xyz="0 0 0" rpy="1.570796 0 0"/>
+	    <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/visual/link_3.stl"/>
+	    </geometry>	 
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/collision/link_3.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </collision>
+  </link>
+    
+  <link name="${prefix}link_4">
+    <visual>
+	    <origin xyz="0 0 0" rpy="1.570796 0 0"/>
+	    <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/visual/link_4.stl"/>
+	    </geometry>	 
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/collision/link_4.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </collision>
+  </link>
+    
+  <link name="${prefix}link_5">
+    <visual>
+	    <origin xyz="0 0 0" rpy="1.570796 0 0"/>
+	    <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/visual/link_5.stl"/>
+	    </geometry>	 
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/collision/link_5.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </collision>
+  </link>
+    
+  <link name="${prefix}link_6">
+    <visual>
+	    <origin xyz="0 0 0" rpy="1.570796 0 0"/>
+	    <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/visual/link_6.stl"/>
+	    </geometry>	 
+      <material name="black">
+        <color rgba="0.2 0.2 0.2 1"/>
+      </material>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="package://abb_irb1520id_4_150_support/meshes/abb_irb1520id_4_150/collision/link_6.stl"/>
+      </geometry>
+      <material name="yellow"/>
+    </collision>
+  </link>
+    
+  <link name="${prefix}tool0"/>
+  <!-- end of link list -->
+    
+  <!-- joint list -->
+  <joint name="${prefix}joint_1" type="revolute">
+    <origin xyz="0 0 0.123" rpy="0 0 0"/>
+    <parent link="${prefix}base_link"/>
+    <child link="${prefix}link_1"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-2.96" upper="2.96" effort="0" velocity="2.26"/>
+  </joint>
+    
+  <joint name="${prefix}joint_2" type="revolute">
+    <origin xyz="0.16 0.0819987460063795 0.33" rpy="0 0 0"/>
+    <parent link="${prefix}link_1"/>
+    <child link="${prefix}link_2"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.57" upper="2.61" effort="0" velocity="2.44"/>
+  </joint>
+    
+  <joint name="${prefix}joint_3" type="revolute">
+    <origin xyz="0 0 0.59" rpy="0 0 0"/>
+    <parent link="${prefix}link_2"/>
+    <child link="${prefix}link_3"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.74" upper="1.39" effort="0" velocity="2.44"/>
+  </joint>
+    
+  <joint name="${prefix}joint_4" type="revolute">
+    <origin xyz="0.0779978545941142 0.0829987458708729 0.2" rpy="0 0 0"/>
+    <parent link="${prefix}link_3"/>
+    <child link="${prefix}link_4"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-2.70" upper="2.70" effort="0" velocity="5.58"/>
+  </joint>
+    
+  <joint name="${prefix}joint_5" type="revolute">
+    <origin xyz="0.645001275116047 0 0" rpy="0 0 0"/>
+    <parent link="${prefix}link_4"/>
+    <child link="${prefix}link_5"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-2.35" upper="2.35" effort="0" velocity="6.63"/>
+  </joint>
+    
+  <joint name="${prefix}joint_6" type="revolute">
+    <origin xyz="0.140499999980545 -0.00099999986449336 0" rpy="0 0 0"/>
+    <parent link="${prefix}link_5"/>
+    <child link="${prefix}link_6"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-3.49" upper="3.49" effort="0" velocity="8.02"/>
+  </joint>
+    
+  <joint name="${prefix}joint_6-tool0" type="fixed">
+    <parent link="${prefix}link_6"/>
+    <child link="${prefix}tool0"/>
+    <origin xyz="0.0595 0 0" rpy="-1.57 0 -1.57"/>
+  </joint>
+  <!-- end of joint list -->
+      
+</xacro:macro>
+</robot>
+    
+		     
