@@ -4,12 +4,16 @@ project(urdf_std_format_converter)
 add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED
+        cmake_modules
         urdf
         roscpp)
 
 find_package(Eigen3 REQUIRED)
 
+find_package(TinyXML REQUIRED)
+
 include_directories(${EIGEN3_INCLUDE_DIR}
+        ${TinyXML_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS})
 
 catkin_package(
