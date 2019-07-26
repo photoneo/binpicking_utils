@@ -109,18 +109,18 @@ int main(int argc, char **argv) {
         MatR.push_back(temp);
     }
 
-    std::cout << "---Joint RPYs---" << std::endl;
+    std::cout << "---Joint offsets---" << std::endl;
     Eigen::Matrix4d mat = Eigen::Matrix4d::Identity();
     for (int i = 0; i < joints.size(); i++) {
         Eigen::Vector4d nullvec;
         nullvec << 0, 0, 0, 1;
         std::cout << joints[i]->name << std::endl;
         std::cout << ((mat * MatT[i]) * nullvec).head(3) << std::endl << std::endl;
-        if (i == joints.size() - 1) {
-            Eigen::Matrix4d tool0 = mat.inverse()*MatR[i];
-            std::cout << tool0.block<3, 3>(0, 0).eulerAngles(0, 1, 2) << std::endl;
-        }
         mat = mat * MatR[i];
+        if (i == joints.size() - 1) {
+            std::cout << mat.block<3, 3>(0, 0).eulerAngles(0, 1, 2) << std::endl;
+            std::cout << mat << std::endl;
+        }
     }
 
     std::cout << "---Joint Axis---" << std::endl;
