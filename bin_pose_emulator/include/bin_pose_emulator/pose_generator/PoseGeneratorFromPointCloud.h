@@ -35,6 +35,8 @@ public:
     PoseGeneratorFromPointCloud(ros::NodeHandle &nh);
     virtual bool generate(geometry_msgs::Pose &pose);
     virtual bool parseConfig(std::string filepath);
+    virtual long getNumberOfPoints();
+    sensor_msgs::PointCloud2 getPointCloud2();
 
 
 protected:

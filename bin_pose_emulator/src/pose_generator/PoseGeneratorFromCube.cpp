@@ -77,6 +77,18 @@ bool PoseGeneratorFromCube::generate(geometry_msgs::Pose &pose){
     transformPose(pose);
 }
 
+long PoseGeneratorFromCube::getNumberOfPoints(){
+
+    long count = (long)(config_.bin_size_x / config_.step_x) + 1;
+    count *=  (long)(config_.bin_size_y / config_.step_y) + 1;
+    count *=  (long)(config_.bin_size_z / config_.step_z) + 1;
+    count *=  (long)(config_.pitch_range / config_.step_pitch) + 1;
+    count *=  (long)(config_.roll_range / config_.step_roll) + 1;
+    count *=  (long)(config_.yaw_range / config_.step_yaw) + 1;
+
+    return count;
+}
+
 bool PoseGeneratorFromCube::parseConfig(std::string filepath) {
 
     try {

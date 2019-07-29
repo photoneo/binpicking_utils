@@ -48,6 +48,8 @@ public:
     PoseGeneratorFromCube(ros::NodeHandle &nh);
     virtual bool generate(geometry_msgs::Pose &pose);
     virtual bool parseConfig(std::string filepath);
+    virtual long getNumberOfPoints();
+
 
 
 protected:

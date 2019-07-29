@@ -10,7 +10,7 @@
 #include <yaml-cpp/yaml.h>
 
 PoseGeneratorFromPointCloud::PoseGeneratorFromPointCloud(ros::NodeHandle &nh) : PoseGeneratorBase(nh){
-    point_cloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("bin_pose_point_cloud", 1);
+    point_cloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", 1);
 }
 
 bool PoseGeneratorFromPointCloud::generate(geometry_msgs::Pose &pose){
@@ -50,6 +50,15 @@ bool PoseGeneratorFromPointCloud::generate(geometry_msgs::Pose &pose){
     pose.orientation.z = grasp_orientation.getZ();
     pose.orientation.w = grasp_orientation.getW();
     return true;
+}
+
+long PoseGeneratorFromPointCloud::getNumberOfPoints(){
+
+    long count = space->points.size();
+    count *= (long) (config_.pitch_range / config_.step_pitch) + 1;
+    count *= (long) (config_.roll_range / config_.step_roll) + 1;
+    count *= (long) (config_.yaw_range / config_.step_yaw) + 1;
+    return count;
 }
 
 bool PoseGeneratorFromPointCloud::parseConfig(std::string filepath) {
@@ -98,4 +107,8 @@ void PoseGeneratorFromPointCloud::visualizeBin()
 {
     point_cloud_msg_.header.stamp = ros::Time::now();
     point_cloud_pub_.publish(point_cloud_msg_);
+}
+
+sensor_msgs::PointCloud2 PoseGeneratorFromPointCloud::getPointCloud2(){
+    return point_cloud_msg_;
 }

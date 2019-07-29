@@ -10,6 +10,7 @@
 #include <sensor_msgs/PointCloud2.h>
 #include <pho_localization_msgs/PointCloud.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloud.h>
+#include <bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloudRandom.h>
 
 ActionServerInterface::ActionServerInterface(ros::NodeHandle &nh, std::string filepath) :
 nh_(nh)
@@ -36,8 +37,11 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
 
     ros::Duration(1.0).sleep();
 
+    long num_of_position = pose_generator_->getNumberOfPoints();
+    ROS_WARN("Simulation started. Prepared are %d poses", num_of_position);
+
     pho_localization::ScanAndLocateFeedback feedback;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < num_of_position; i++) {
         feedback.object.header.seq = object_id;
         feedback.object.header.frame_id = "base_link";
         feedback.object.header.stamp = ros::Time::now();
@@ -48,7 +52,7 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
         pose_generator_->getPose(feedback.object.pose, 0.3);
         ROS_INFO_STREAM(feedback.object);
         as_->publishFeedback(feedback);
-        ros::Duration(0.5).sleep();
+        ros::Duration(0.1).sleep();
     }
 
     pho_localization::ScanAndLocateResult result;
@@ -66,6 +70,8 @@ void ActionServerInterface::publishEmptyCloud(int frameId) {
     status.sceneSourceStatusType.val = pho_localization_msgs::SceneSourceStatusTypes::POINT_CLOUD_AVAILABLE;
 
     pho_localization_msgs::PointCloud cloud_msg;
+    cloud_msg.pointCloud = ( dynamic_cast<PoseGeneratorFromPointCloud*> (pose_generator_.get()))->getPointCloud2();
+
   //  geometry_msgs::Transform tr(1.823,-0.365,1.499, 1);
    // cloud_msg.sensorOrigin = Eigen::Vector4f(1.823,-0.365,1.499, 1);
 
