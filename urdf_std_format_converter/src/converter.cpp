@@ -141,29 +141,28 @@ int main(int argc, char **argv) {
         std::cout << newLinkRPYs[i] << std::endl << std::endl;
     }
 
-    TiXmlDocument xacroXML = TiXmlDocument("/home/controller/catkin_ws/src/" + robot + "/" + robot +\
+    TiXmlDocument xacroXML = TiXmlDocument("/home/controller/catkin_ws/src/" + robot + "/" + robot + \
             "_support/urdf/robot_macro.xacro");
     if (xacroXML.LoadFile()) {
-        TiXmlElement* rootNode = xacroXML.FirstChildElement();
-        TiXmlElement* xacroNode = rootNode->FirstChildElement();
-        TiXmlElement* ljNode = xacroNode->FirstChildElement();
+        TiXmlElement *xacroNode = xacroXML.FirstChild("robot")->FirstChild("xacro:macro")->ToElement();
+        TiXmlElement *ljNode = xacroNode->FirstChildElement();
 
-        std::vector<TiXmlElement*> linkElements;
-        std::vector<TiXmlElement*> jointElements;
+        std::vector<TiXmlElement *> linkElements;
+        std::vector<TiXmlElement *> jointElements;
 
         // Prepare vectors of link and joint elements
-        while(ljNode) {
+        while (ljNode) {
             std::string ljName = ljNode->FirstAttribute()->ValueStr();
-            if(ljName.find("link_") != std::string::npos) {
+            if (ljName.find("link_") != std::string::npos) {
                 int i = ljName[ljName.find("link_") + 5] - '0';
-                if(i == linkElements.size() + 1) {
+                if (i == linkElements.size() + 1) {
                     linkElements.push_back(ljNode);
                 }
-            } else if(ljName.find("joint_") != std::string::npos) {
+            } else if (ljName.find("joint_") != std::string::npos) {
                 int i = ljName[ljName.find("joint_") + 6] - '0';
-                if(i == jointElements.size() + 1) {
+                if (i == jointElements.size() + 1) {
                     jointElements.push_back(ljNode);
-                } else if(ljName.find("tool0") != std::string::npos) {
+                } else if (ljName.find("tool0") != std::string::npos) {
                     jointElements.push_back(ljNode);
                 }
             }
@@ -171,15 +170,49 @@ int main(int argc, char **argv) {
         }
 
         // Print link elements
-        for(auto lE : linkElements){
+        for (int i = 0; i < linkElements.size(); i++) {
+            auto lE = linkElements[i];
             std::cout << lE->FirstAttribute()->ValueStr() << std::endl;
+            TiXmlNode* tempNode = lE->FirstChild("visual");
+            std::string rpyString = std::to_string(newLinkRPYs[i][2]) + " ";
+            rpyString += std::to_string(newLinkRPYs[i][1]) + " ";
+            rpyString += std::to_string(newLinkRPYs[i][0]);
 
+            if (tempNode != nullptr) {
+                tempNode = tempNode->FirstChild("origin");
+                if (tempNode != nullptr) {
+                    TiXmlAttribute* lA = tempNode->ToElement()->FirstAttribute();
+                    while(lA) {
+                        std::cout << lA->Name() << std::endl;
+                        if (lA->NameTStr() == "rpy") {
+                            std::cout << lA->ValueStr() << std::endl;
+
+                            lA->SetValue(rpyString);
+                            std::cout << lA->ValueStr() << std::endl;
+                        }
+                        lA = lA->Next();
+                    }
+                } else return 1;
+            } else return 1;
+
+            tempNode = lE->FirstChild("collision");
+            if (tempNode != nullptr) {
+                TiXmlElement originElement("origin");
+                originElement.SetAttribute("xyz", "0 0 0");
+                originElement.SetAttribute("rpy", rpyString);
+
+                TiXmlNode* geometryNode = tempNode->FirstChild("geometry");
+                tempNode->InsertBeforeChild(geometryNode,originElement);
+            } else return 1;
         }
 
         // Print joint elements
-        for(auto jE : jointElements){
+        for (auto jE : jointElements) {
             std::cout << jE->FirstAttribute()->ValueStr() << std::endl;
         }
+
+        xacroXML.SaveFile("/home/controller/catkin_ws/src/" + robot + "/" + robot + \
+            "_support/urdf/robot_macro_mod.xacro");
 
     } else {
         std::cout << "XML file open failed." << std::endl;
