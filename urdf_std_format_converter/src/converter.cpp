@@ -63,8 +63,8 @@ int main(int argc, char **argv) {
         LMatR.push_back(temp);
     }
 
-    std::vector<Eigen::Matrix4d> JMatR; // Joint Rotational matrices
-    std::vector<Eigen::Matrix4d> JMatT; // Joint Translational matrices
+    std::vector<Eigen::Matrix4d> jMatR; // Joint Rotational matrices
+    std::vector<Eigen::Matrix4d> jMatT; // Joint Translational matrices
     for (const auto &joint : joints) {
         double x = joint->parent_to_joint_origin_transform.position.x;
         double y = joint->parent_to_joint_origin_transform.position.y;
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
         temp << Eigen::Matrix3d::Identity(), Eigen::Vector3d(x, y, z),
                 0, 0, 0, 1;
 //        std::cout << temp << std::endl;
-        JMatT.push_back(temp);
+        jMatT.push_back(temp);
 
 
         Eigen::Quaterniond quat;
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 //        std::cout << quaternion.vec() << "\n" << quaternion.w() << std::endl;
 //        std::cout << temp << std::endl << std::endl;
 
-        JMatR.push_back(temp);
+        jMatR.push_back(temp);
     }
 
     std::vector<Eigen::Vector3d> newJointRPYs;
@@ -98,10 +98,10 @@ int main(int argc, char **argv) {
     for (int i = 0; i < joints.size(); i++) {
         Eigen::Vector4d nullvec;
         nullvec << 0, 0, 0, 1;
-        newJointOffsets.emplace_back(((mat * JMatT[i]) * Eigen::Vector4d(0, 0, 0, 1)).head(3));
+        newJointOffsets.emplace_back(((mat * jMatT[i]) * Eigen::Vector4d(0, 0, 0, 1)).head(3));
         std::cout << joints[i]->name << std::endl;
         std::cout << newJointOffsets[i] << std::endl << std::endl;
-        mat *= JMatR[i];
+        mat *= jMatR[i];
         if (i < joints.size() - 1) {
             newJointRPYs.emplace_back(Eigen::Vector3d::Zero());
         } else {
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
         Eigen::Vector4d axis;
         axis = Eigen::Vector4d(joints[i]->axis.x, joints[i]->axis.y, joints[i]->axis.z, 1);
 
-        mat *= JMatR[i];
+        mat *= jMatR[i];
         newJointAxes.emplace_back((mat * axis).head(3));
 
         double eps = 0.01;
@@ -135,13 +135,54 @@ int main(int argc, char **argv) {
     std::cout << "---Link RPYs---" << std::endl;
     mat = Eigen::Matrix4d::Identity();
     for (int i = 0; i < links.size(); i++) {
-        mat *= JMatR[i];
+        mat *= jMatR[i];
         newLinkRPYs.push_back((mat * LMatR[i]).block<3, 3>(0, 0).eulerAngles(2, 1, 0));
         std::cout << links[i]->name << std::endl;
         std::cout << newLinkRPYs[i] << std::endl << std::endl;
     }
 
-    //TiXmlDocument XacroXML = TiXmlDocument("/home/controller/catkin_ws/src/" + robot + "/" + robot + "_support/urdf/robot_macro.xacro");
-    //XacroXML.LoadFile("/home/controller/catkin_ws/src/" + robot + "/" + robot + "_support/urdf/robot_macro.xacro.urdf");
-    //std::cout << XacroXML << std::endl;
+    TiXmlDocument xacroXML = TiXmlDocument("/home/controller/catkin_ws/src/" + robot + "/" + robot +\
+            "_support/urdf/robot_macro.xacro");
+    if (xacroXML.LoadFile()) {
+        TiXmlElement* rootNode = xacroXML.FirstChildElement();
+        TiXmlElement* xacroNode = rootNode->FirstChildElement();
+        TiXmlElement* ljNode = xacroNode->FirstChildElement();
+
+        std::vector<TiXmlElement*> linkElements;
+        std::vector<TiXmlElement*> jointElements;
+
+        // Prepare vectors of link and joint elements
+        while(ljNode) {
+            std::string ljName = ljNode->FirstAttribute()->ValueStr();
+            if(ljName.find("link_") != std::string::npos) {
+                int i = ljName[ljName.find("link_") + 5] - '0';
+                if(i == linkElements.size() + 1) {
+                    linkElements.push_back(ljNode);
+                }
+            } else if(ljName.find("joint_") != std::string::npos) {
+                int i = ljName[ljName.find("joint_") + 6] - '0';
+                if(i == jointElements.size() + 1) {
+                    jointElements.push_back(ljNode);
+                } else if(ljName.find("tool0") != std::string::npos) {
+                    jointElements.push_back(ljNode);
+                }
+            }
+            ljNode = ljNode->NextSiblingElement();
+        }
+
+        // Print link elements
+        for(auto lE : linkElements){
+            std::cout << lE->FirstAttribute()->ValueStr() << std::endl;
+
+        }
+
+        // Print joint elements
+        for(auto jE : jointElements){
+            std::cout << jE->FirstAttribute()->ValueStr() << std::endl;
+        }
+
+    } else {
+        std::cout << "XML file open failed." << std::endl;
+    }
+
 }

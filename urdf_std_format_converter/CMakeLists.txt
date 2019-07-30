@@ -12,7 +12,7 @@ find_package(Eigen3 REQUIRED)
 
 find_package(TinyXML REQUIRED)
 
-include_directories(${EIGEN3_INCLUDE_DIR}
+include_directories(${EIGEN3_INCLUDE_DIRS}
         ${TinyXML_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS})
 
@@ -27,6 +27,7 @@ add_executable(converter
         src/converter.cpp)
 
 target_link_libraries(converter
-     ${catkin_LIBRARIES}
-)
+        ${catkin_LIBRARIES}
+        ${TinyXML_LIBRARIES}
+        ${EIGEN3_LIBRARIES})
 
