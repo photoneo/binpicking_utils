@@ -66,6 +66,14 @@ int main(int argc, char **argv) {
     std::vector<Eigen::Matrix4d> jMatR; // Joint Rotational matrices
     std::vector<Eigen::Matrix4d> jMatT; // Joint Translational matrices
     for (const auto &joint : joints) {
+        if (joint->type != urdf::Joint::REVOLUTE && joint->type != urdf::Joint::FIXED) {
+            std::cout << "There is PRISMATIC type of the joint. Do you want to continue? y/n ";
+            std::string input;
+            std::cin >> input;
+            if(input == "n") {
+                return 2;
+            }
+        }
         double x = joint->parent_to_joint_origin_transform.position.x;
         double y = joint->parent_to_joint_origin_transform.position.y;
         double z = joint->parent_to_joint_origin_transform.position.z;
@@ -169,46 +177,55 @@ int main(int argc, char **argv) {
             ljNode = ljNode->NextSiblingElement();
         }
 
-        // Print link elements
+        // Print and modify link elements
         for (int i = 0; i < linkElements.size(); i++) {
             auto lE = linkElements[i];
             std::cout << lE->FirstAttribute()->ValueStr() << std::endl;
-            TiXmlNode* tempNode = lE->FirstChild("visual");
+
             std::string rpyString = std::to_string(newLinkRPYs[i][2]) + " ";
             rpyString += std::to_string(newLinkRPYs[i][1]) + " ";
             rpyString += std::to_string(newLinkRPYs[i][0]);
+            TiXmlElement originElement("origin");
+            originElement.SetAttribute("xyz", "0 0 0");
+            originElement.SetAttribute("rpy", rpyString);
 
+            TiXmlNode* tempNode = lE->FirstChild("visual");
             if (tempNode != nullptr) {
-                tempNode = tempNode->FirstChild("origin");
-                if (tempNode != nullptr) {
-                    TiXmlAttribute* lA = tempNode->ToElement()->FirstAttribute();
-                    while(lA) {
-                        std::cout << lA->Name() << std::endl;
-                        if (lA->NameTStr() == "rpy") {
-                            std::cout << lA->ValueStr() << std::endl;
-
-                            lA->SetValue(rpyString);
-                            std::cout << lA->ValueStr() << std::endl;
-                        }
-                        lA = lA->Next();
-                    }
-                } else return 1;
+                tempNode->ReplaceChild(tempNode->FirstChild("origin"),originElement);
             } else return 1;
 
             tempNode = lE->FirstChild("collision");
             if (tempNode != nullptr) {
-                TiXmlElement originElement("origin");
-                originElement.SetAttribute("xyz", "0 0 0");
-                originElement.SetAttribute("rpy", rpyString);
-
-                TiXmlNode* geometryNode = tempNode->FirstChild("geometry");
-                tempNode->InsertBeforeChild(geometryNode,originElement);
+                tempNode->InsertBeforeChild(tempNode->FirstChild("geometry"),originElement);
             } else return 1;
         }
 
-        // Print joint elements
-        for (auto jE : jointElements) {
+        // Print and modify joint elements
+        for (int i = 0; i < jointElements.size(); i++) {
+            auto jE = jointElements[i];
             std::cout << jE->FirstAttribute()->ValueStr() << std::endl;
+
+            std::string xyzString = std::to_string(newJointOffsets[i][0]) + " ";
+            xyzString += std::to_string(newJointOffsets[i][1]) + " ";
+            xyzString += std::to_string(newJointOffsets[i][2]);
+
+            std::string rpyString = std::to_string(newJointRPYs[i][0]) + " ";
+            rpyString += std::to_string(newJointRPYs[i][1]) + " ";
+            rpyString += std::to_string(newJointRPYs[i][2]);
+
+            std::string axisString = std::to_string((int)newJointAxes[i][0]) + " ";
+            axisString += std::to_string((int)newJointAxes[i][1]) + " ";
+            axisString += std::to_string((int)newJointAxes[i][2]);
+
+            TiXmlElement originElement("origin");
+            originElement.SetAttribute("xyz", xyzString);
+            originElement.SetAttribute("rpy", rpyString);
+
+            TiXmlElement axisElement("axis");
+            axisElement.SetAttribute("xyz", axisString);
+
+            jE->ReplaceChild(jE->FirstChild("origin"), originElement);
+            jE->ReplaceChild(jE->FirstChild("axis"), axisElement);
         }
 
         xacroXML.SaveFile("/home/controller/catkin_ws/src/" + robot + "/" + robot + \

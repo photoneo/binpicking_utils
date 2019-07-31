@@ -23,10 +23,10 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-add_executable(converter
-        src/converter.cpp)
+add_executable(urdf_std_format_converter
+        src/urdf_std_format_converter.cpp include/urdf_std_format_converter/urdf_std_format_converter.h)
 
-target_link_libraries(converter
+target_link_libraries(urdf_std_format_converter
         ${catkin_LIBRARIES}
         ${TinyXML_LIBRARIES}
         ${EIGEN3_LIBRARIES})
