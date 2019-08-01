@@ -14,20 +14,31 @@ find_package(TinyXML REQUIRED)
 
 include_directories(${EIGEN3_INCLUDE_DIRS}
         ${TinyXML_INCLUDE_DIRS}
-        ${catkin_INCLUDE_DIRS})
+        ${catkin_INCLUDE_DIRS}
+        include)
 
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES urdf_std_format_converter
-#  CATKIN_DEPENDS other_catkin_pkg
-#  DEPENDS system_lib
+    INCLUDE_DIRS include
+#    LIBRARIES urdf_std_format_converter
+#    CATKIN_DEPENDS other_catkin_pkg
+#    DEPENDS system_lib
 )
 
-add_executable(urdf_std_format_converter
-        src/urdf_std_format_converter.cpp include/urdf_std_format_converter/urdf_std_format_converter.h)
+add_library(${PROJECT_NAME}
+        src/urdf_std_format_converter.cpp)
 
-target_link_libraries(urdf_std_format_converter
+add_executable(urdf_converter_node
+        src/urdf_converter_node.cpp src/urdf_std_format_converter.cpp)
+
+target_link_libraries(urdf_converter_node
         ${catkin_LIBRARIES}
         ${TinyXML_LIBRARIES}
         ${EIGEN3_LIBRARIES})
+
+add_dependencies(
+        urdf_converter_node
+        ${${PROJECT_NAME}_EXPORTED_TARGETS}
+        ${catkin_EXPORTED_TARGETS})
+
+
 

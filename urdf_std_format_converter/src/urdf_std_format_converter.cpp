@@ -8,70 +8,37 @@
 #include <Eigen/Dense>
 #include <urdf/model.h>
 #include <tinyxml.h>
+#include <urdf_std_format_converter/urdf_std_format_converter.h>
 
 
-class RobotModel : public urdf::Model {
-//    using urdf::Model;
-public:
-    std::vector<urdf::JointSharedPtr> getChildJoints() {
-        std::vector<urdf::JointSharedPtr> joints;
-        urdf::LinkConstSharedPtr actual_link = getRoot();
-        for (int i = 0; i < joints_.size(); i++) {
-            joints.push_back(actual_link->child_joints[0]);
-            actual_link = actual_link->child_links[0];
-        }
-        return joints;
-    }
+UrdfStdFormatConverter::UrdfStdFormatConverter(std::string inputFilePath) {
+    this->robotModel.initFile(inputFilePath);
+    createChildJoints();
+    createChildLinks();
+}
 
-    std::vector<urdf::LinkSharedPtr> getChildLinks() {
-        std::vector<urdf::LinkSharedPtr> links;
-        urdf::LinkConstSharedPtr actual_link = getRoot();
-        for (int i = 0; i < links_.size() - 2; i++) {
-            links.push_back(actual_link->child_links[0]);
-            actual_link = actual_link->child_links[0];
-        }
-        return links;
-    }
-};
+UrdfStdFormatConverter::~UrdfStdFormatConverter() = default;
 
-int main(int argc, char **argv) {
-    std::string cmd;
-    std::string robot;
-    robot = "abb_irb1520id_4_150";
-    cmd = "cd ~/catkin_ws/src/" + robot + "/" + robot + "_support/urdf && ";
-    cmd += "rosrun xacro xacro --inorder -o robot.urdf robot.xacro";
-    std::cout << cmd << std::endl;
-    if (system(cmd.c_str())) {
-        std::cout << "Xacro to URDF conversion failed." << std::endl;
-        return 1;
-    }
-
-    RobotModel model;
-    model.initFile("/home/controller/catkin_ws/src/" + robot + "/" + robot + "_support/urdf/robot.urdf");
-
-    auto joints = model.getChildJoints();
-    auto links = model.getChildLinks();
-
-    std::vector<Eigen::Matrix4d> LMatR; // Link Rotational matrices
+int UrdfStdFormatConverter::createMatricesFromUrdf() {
+    std::cout << "---Previous Link Rotations---" << std::endl;
     for (const auto &link : links) {
         Eigen::Quaterniond quat;
         link->visual->origin.rotation.getQuaternion(quat.x(), quat.y(), quat.z(), quat.w());
         std::cout << link->name << std::endl;
         Eigen::Matrix4d temp = Eigen::Matrix4d::Identity();
         temp.block<3, 3>(0, 0) = quat.toRotationMatrix();
-        std::cout << quat.toRotationMatrix().eulerAngles(2, 1, 0) << "\n\n";
-        LMatR.push_back(temp);
+        std::cout << rpyVector3toString(quat.toRotationMatrix().eulerAngles(2, 1, 0)) << "\n\n";
+        lMatR.push_back(temp);
     }
 
-    std::vector<Eigen::Matrix4d> jMatR; // Joint Rotational matrices
-    std::vector<Eigen::Matrix4d> jMatT; // Joint Translational matrices
+    std::cout << "---Previous Joint Rotations---" << std::endl;
     for (const auto &joint : joints) {
         if (joint->type != urdf::Joint::REVOLUTE && joint->type != urdf::Joint::FIXED) {
             std::cout << "There is PRISMATIC type of the joint. Do you want to continue? y/n ";
             std::string input;
             std::cin >> input;
-            if(input == "n") {
-                return 2;
+            if (input == "n") {
+                return 1;
             }
         }
         double x = joint->parent_to_joint_origin_transform.position.x;
@@ -89,37 +56,36 @@ int main(int argc, char **argv) {
         joint->parent_to_joint_origin_transform.rotation.getQuaternion(quat.x(), quat.y(), quat.z(), quat.w());
         temp = Eigen::Matrix4d::Identity();
         temp.block<3, 3>(0, 0) = quat.toRotationMatrix();
-        std::cout << quat.toRotationMatrix().eulerAngles(2, 1, 0) << "\n\n";
+        std::cout << rpyVector3toString(quat.toRotationMatrix().eulerAngles(2, 1, 0)) << "\n\n";
 //        std::cout << quaternion.vec() << "\n" << quaternion.w() << std::endl;
 //        std::cout << temp << std::endl << std::endl;
 
         jMatR.push_back(temp);
     }
 
-    std::vector<Eigen::Vector3d> newJointRPYs;
-    std::vector<Eigen::Vector3d> newJointOffsets;
-    std::vector<Eigen::Vector3d> newJointAxes;
-    std::vector<Eigen::Vector3d> newLinkRPYs;
+    return 0;
+}
 
-    std::cout << "---Joint Offsets---" << std::endl;
+void UrdfStdFormatConverter::calculateNewUrdfValues() {
+    std::cout << "---New Joint Offsets---" << std::endl;
     Eigen::Matrix4d mat = Eigen::Matrix4d::Identity();
     for (int i = 0; i < joints.size(); i++) {
         Eigen::Vector4d nullvec;
         nullvec << 0, 0, 0, 1;
         newJointOffsets.emplace_back(((mat * jMatT[i]) * Eigen::Vector4d(0, 0, 0, 1)).head(3));
         std::cout << joints[i]->name << std::endl;
-        std::cout << newJointOffsets[i] << std::endl << std::endl;
+        std::cout << xyzVector3toString(newJointOffsets[i]) << std::endl << std::endl;
         mat *= jMatR[i];
         if (i < joints.size() - 1) {
             newJointRPYs.emplace_back(Eigen::Vector3d::Zero());
         } else {
+            std::cout << "---New Tool0 RPY---" << std::endl;
             newJointRPYs.push_back(mat.block<3, 3>(0, 0).eulerAngles(2, 1, 0));
-            std::cout << newJointRPYs[i] << std::endl;
-//            std::cout << mat << std::endl;
+            std::cout << rpyVector3toString(newJointRPYs[i]) << std::endl << std::endl;
         }
     }
 
-    std::cout << "---Joint Axes---" << std::endl;
+    std::cout << "---New Joint Axes---" << std::endl;
     mat = Eigen::Matrix4d::Identity();
     for (int i = 0; i < joints.size() - 1; i++) {
         Eigen::Vector4d axis;
@@ -128,29 +94,31 @@ int main(int argc, char **argv) {
         mat *= jMatR[i];
         newJointAxes.emplace_back((mat * axis).head(3));
 
-        double eps = 0.01;
         for (int j = 0; j < 3; j++) {
-            double absval = std::round(newJointAxes[i](j));
-            if ((absval < eps) || (std::abs(absval - 1) < eps)) {
-                newJointAxes[i](j) = round(newJointAxes[i](j));
+            double absval = std::abs(newJointAxes[i](j));
+            if (absval < ROUND_EPS) {
+                newJointAxes[i](j) = std::abs(std::round(newJointAxes[i](j)));
+            } else if(std::abs(absval - 1) < ROUND_EPS) {
+                newJointAxes[i](j) = std::round(newJointAxes[i](j));
             }
         }
-        newJointAxes[i](0) = std::round(newJointAxes[i](0));
         std::cout << joints[i]->name << std::endl;
         std::cout << newJointAxes[i] << std::endl << std::endl;
     }
 
-    std::cout << "---Link RPYs---" << std::endl;
+    std::cout << "---New Link RPYs---" << std::endl;
     mat = Eigen::Matrix4d::Identity();
     for (int i = 0; i < links.size(); i++) {
         mat *= jMatR[i];
-        newLinkRPYs.push_back((mat * LMatR[i]).block<3, 3>(0, 0).eulerAngles(2, 1, 0));
+        newLinkRPYs.push_back((mat * lMatR[i]).block<3, 3>(0, 0).eulerAngles(2, 1, 0));
         std::cout << links[i]->name << std::endl;
-        std::cout << newLinkRPYs[i] << std::endl << std::endl;
+        std::cout << rpyVector3toString(newLinkRPYs[i]) << std::endl << std::endl;
     }
+}
 
-    TiXmlDocument xacroXML = TiXmlDocument("/home/controller/catkin_ws/src/" + robot + "/" + robot + \
-            "_support/urdf/robot_macro.xacro");
+int UrdfStdFormatConverter::modifyXacroXmlFile(std::string xacroFilePath) {
+    xacroXML = TiXmlDocument(xacroFilePath);
+
     if (xacroXML.LoadFile()) {
         TiXmlElement *xacroNode = xacroXML.FirstChild("robot")->FirstChild("xacro:macro")->ToElement();
         TiXmlElement *ljNode = xacroNode->FirstChildElement();
@@ -158,6 +126,7 @@ int main(int argc, char **argv) {
         std::vector<TiXmlElement *> linkElements;
         std::vector<TiXmlElement *> jointElements;
 
+        std::cout << "---These elements was modified in new Xacro file---" << std::endl;
         // Prepare vectors of link and joint elements
         while (ljNode) {
             std::string ljName = ljNode->FirstAttribute()->ValueStr();
@@ -182,21 +151,18 @@ int main(int argc, char **argv) {
             auto lE = linkElements[i];
             std::cout << lE->FirstAttribute()->ValueStr() << std::endl;
 
-            std::string rpyString = std::to_string(newLinkRPYs[i][2]) + " ";
-            rpyString += std::to_string(newLinkRPYs[i][1]) + " ";
-            rpyString += std::to_string(newLinkRPYs[i][0]);
             TiXmlElement originElement("origin");
             originElement.SetAttribute("xyz", "0 0 0");
-            originElement.SetAttribute("rpy", rpyString);
+            originElement.SetAttribute("rpy", rpyVector3toString(newLinkRPYs[i]));
 
-            TiXmlNode* tempNode = lE->FirstChild("visual");
+            TiXmlNode *tempNode = lE->FirstChild("visual");
             if (tempNode != nullptr) {
-                tempNode->ReplaceChild(tempNode->FirstChild("origin"),originElement);
+                tempNode->ReplaceChild(tempNode->FirstChild("origin"), originElement);
             } else return 1;
 
             tempNode = lE->FirstChild("collision");
             if (tempNode != nullptr) {
-                tempNode->InsertBeforeChild(tempNode->FirstChild("geometry"),originElement);
+                tempNode->InsertBeforeChild(tempNode->FirstChild("geometry"), originElement);
             } else return 1;
         }
 
@@ -205,34 +171,110 @@ int main(int argc, char **argv) {
             auto jE = jointElements[i];
             std::cout << jE->FirstAttribute()->ValueStr() << std::endl;
 
-            std::string xyzString = std::to_string(newJointOffsets[i][0]) + " ";
-            xyzString += std::to_string(newJointOffsets[i][1]) + " ";
-            xyzString += std::to_string(newJointOffsets[i][2]);
-
-            std::string rpyString = std::to_string(newJointRPYs[i][0]) + " ";
-            rpyString += std::to_string(newJointRPYs[i][1]) + " ";
-            rpyString += std::to_string(newJointRPYs[i][2]);
-
-            std::string axisString = std::to_string((int)newJointAxes[i][0]) + " ";
-            axisString += std::to_string((int)newJointAxes[i][1]) + " ";
-            axisString += std::to_string((int)newJointAxes[i][2]);
+            std::string axisString = std::to_string((int) newJointAxes[i][0]) + " ";
+            axisString += std::to_string((int) newJointAxes[i][1]) + " ";
+            axisString += std::to_string((int) newJointAxes[i][2]);
 
             TiXmlElement originElement("origin");
-            originElement.SetAttribute("xyz", xyzString);
-            originElement.SetAttribute("rpy", rpyString);
+            originElement.SetAttribute("xyz", xyzVector3toString(newJointOffsets[i]));
+            originElement.SetAttribute("rpy", rpyVector3toString(newJointRPYs[i]));
 
             TiXmlElement axisElement("axis");
-            axisElement.SetAttribute("xyz", axisString);
+            axisElement.SetAttribute("xyz",  axisString);
 
             jE->ReplaceChild(jE->FirstChild("origin"), originElement);
             jE->ReplaceChild(jE->FirstChild("axis"), axisElement);
         }
 
-        xacroXML.SaveFile("/home/controller/catkin_ws/src/" + robot + "/" + robot + \
-            "_support/urdf/robot_macro_mod.xacro");
+        xacroXML.SaveFile(xacroFilePath + ".xacro");
 
     } else {
         std::cout << "XML file open failed." << std::endl;
+        return 1;
     }
 
+    return 0;
+}
+
+std::string UrdfStdFormatConverter::rpyVector3toString(Eigen::Vector3d vec) {
+    std::string output = "";
+    for (int i = 2; i >= 0; i--) {
+        if (std::abs(vec[i]) < ROUND_EPS) {
+            output += std::to_string((int) std::abs(std::round(vec[i])));
+        } else {
+            output += std::to_string(vec[i]);
+        }
+        if (i > 0) {
+            output += " ";
+        }
+    }
+    return output;
+}
+
+std::string UrdfStdFormatConverter::xyzVector3toString(Eigen::Vector3d vec) {
+    std::string output = "";
+    for (int i = 0; i <= 2; i++) {
+        if (std::abs(vec[i]) < ROUND_EPS) {
+            output += std::to_string((int) std::abs(std::round(vec[i])));
+        } else {
+            output += std::to_string(vec[i]);
+        }
+        if (i < 2) {
+            output += " ";
+        }
+    }
+    return output;
+}
+
+int UrdfStdFormatConverter::isConversionNeeded() {
+    for (const auto &joint : joints) {
+        if (joint->type == urdf::Joint::REVOLUTE)
+        {
+            Eigen::Matrix4d mat;
+            Eigen::Quaterniond quat;
+            Eigen::Vector3d vec;
+            joint->parent_to_joint_origin_transform.rotation.getQuaternion(quat.x(), quat.y(), quat.z(), quat.w());
+            mat = Eigen::Matrix4d::Identity();
+            mat.block<3, 3>(0, 0) = quat.toRotationMatrix();
+            vec = quat.toRotationMatrix().eulerAngles(2, 1, 0);
+            for(int i = 0; i<=2; i++) {
+                if(std::abs(vec[i]) > ROUND_EPS) {
+                    return 1;
+                }
+            }
+        }
+    }
+    return 0;
+}
+
+std::vector<Eigen::Vector3d> UrdfStdFormatConverter::getNewJointAxes() {
+    return newJointAxes;
+}
+
+std::vector<Eigen::Vector3d> UrdfStdFormatConverter::getNewJointOffsets() {
+    return newJointOffsets;
+}
+
+std::vector<Eigen::Vector3d> UrdfStdFormatConverter::getNewJointRPYs() {
+    return newJointRPYs;
+}
+
+std::vector<Eigen::Vector3d> UrdfStdFormatConverter::getNewLinkRPYs() {
+    return newLinkRPYs;
+}
+
+void UrdfStdFormatConverter::createChildJoints() {
+    urdf::LinkConstSharedPtr actual_link = robotModel.getRoot();
+    for (int i = 0; i < robotModel.joints_.size(); i++) {
+        joints.push_back(actual_link->child_joints[0]);
+        actual_link = actual_link->child_links[0];
+    }
+}
+
+void UrdfStdFormatConverter::createChildLinks() {
+    urdf::LinkConstSharedPtr actual_link = robotModel.getRoot();
+    for (int i = 0; i < robotModel.links_.size() - 2; i++) {
+        links.push_back(actual_link->child_links[0]);
+        actual_link = actual_link->child_links[0];
+    }
 }
