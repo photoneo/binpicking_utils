@@ -23,6 +23,7 @@ public:
     std::vector<Eigen::Vector3d> getNewLinkRPYs();
     int modifyXacroXmlFile(std::string xacroFilePath);
     int isConversionNeeded();
+    int existLinkOffsets();
 
 private:
     urdf::Model robotModel;

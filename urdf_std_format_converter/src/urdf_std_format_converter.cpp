@@ -247,6 +247,19 @@ int UrdfStdFormatConverter::isConversionNeeded() {
     return 0;
 }
 
+int UrdfStdFormatConverter::existLinkOffsets() {
+    for (auto link : links) {
+        double sum = 0;
+        sum = std::abs(link->visual->origin.position.x);
+        sum += std::abs(link->visual->origin.position.y);
+        sum += std::abs(link->visual->origin.position.z);
+        if(sum > ROUND_EPS) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 std::vector<Eigen::Vector3d> UrdfStdFormatConverter::getNewJointAxes() {
     return newJointAxes;
 }

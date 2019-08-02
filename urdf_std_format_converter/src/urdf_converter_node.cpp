@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
     std::string cmd;
     std::string robot;
 
-    if(argc == 2){
+    if (argc == 2) {
         std::cout << "Robot: " << argv[1] << std::endl;
     } else {
         std::cout << "Please enter robot name as the first argument." << std::endl;
@@ -27,13 +27,19 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    UrdfStdFormatConverter urdfConverter("/home/controller/catkin_ws/src/" + robot + "/" + robot + "_support/urdf/robot.urdf");
-    if(urdfConverter.isConversionNeeded() == 0) {
+    UrdfStdFormatConverter urdfConverter(
+            "/home/controller/catkin_ws/src/" + robot + "/" + robot + "_support/urdf/robot.urdf");
+    if (urdfConverter.existLinkOffsets() == 1) {
+        std::cout << "URDF model has some offsets of the links. Conversion is not prepared for it." << std::endl;
+        return 4;
+    }
+
+    if (urdfConverter.isConversionNeeded() == 0) {
         std::cout << "URDF model does not have any rotation of the joints. Conversion is not needed." << std::endl;
         return 2;
     }
 
-    if(urdfConverter.createMatricesFromUrdf() == 1) {
+    if (urdfConverter.createMatricesFromUrdf() == 1) {
         return 3;
     }
 
