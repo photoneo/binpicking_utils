@@ -24,7 +24,8 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
                                                               outfile_joint_diff_("/home/controller/catkin_ws/planner_test/joint_diff.txt"),
                                                               log_path_("/home/controller/catkin_ws/planner_test/"),
                                                               outfile_points_("/home/controller/catkin_ws/planner_test/points.txt"),
-                                                              path_length_test_()
+                                                              path_length_test_(),
+                                                              outfile_stomp_stats_("/home/controller/catkin_ws/planner_test/stomp_stats.txt")
 {
   // Initialize Moveit group
   group_.reset(new moveit::planning_interface::MoveGroupInterface("manipulator"));
@@ -65,6 +66,10 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
   success_rate_ = 0;
   ik_fails_sum_ = 0;
   bad_trajectory_ = 0;
+
+  stompAvgTime = 0;
+  stompSumTime = 0;
+  stompNumOfSuccess = 0;
 
     // outfile_time_ = new std::ofstream();
 }
@@ -370,9 +375,8 @@ void BinpickingEmulator::binPickingLoop(){
                     linear_waypoints.push_back(waypoints[i].pose);
                     success_approach = group_->computeCartesianPath(linear_waypoints, 0.01, 0, trajectory, false);
 
-                } else{
+                } else {
                     moveit::planning_interface::MoveGroupInterface::Plan plan;
-                    double time = ros::Time::now().toSec();
                     success_approach = group_->plan(plan);
                     trajectory = plan.trajectory_;
                 }
@@ -384,6 +388,9 @@ void BinpickingEmulator::binPickingLoop(){
                     continuity_checker_[i]++;
                 }
                 createStatistics(success_approach, trajectory.joint_trajectory, time, waypoints[i].pose);
+                if (!waypoints[i].is_linear) {
+                    createStompStatistics(success_approach, trajectory.joint_trajectory, time, waypoints[i].pose);
+                }
 
                 if (success_approach) {
 
@@ -438,38 +445,38 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
     joints_diff.resize(6, 0);
 
     if (success){
-    for (int i = 1; i < trajectory.points.size(); i++) {
-        for (int j = 0; j < 6; j++) {
-            joints_diff[j] += fabs(trajectory.points[i].positions[j] -
-                             trajectory.points[i - 1].positions[j]);
-            sum_joint_diff_swap += fabs(trajectory.points[i].positions[j] -
-                                        trajectory.points[i - 1].positions[j]);
+        for (int i = 1; i < trajectory.points.size(); i++) {
+            for (int j = 0; j < 6; j++) {
+                joints_diff[j] += fabs(trajectory.points[i].positions[j] -
+                                 trajectory.points[i - 1].positions[j]);
+                sum_joint_diff_swap += fabs(trajectory.points[i].positions[j] -
+                                            trajectory.points[i - 1].positions[j]);
+            }
         }
-    }
 
-    for (int i = 0; i < joints_diff.size(); i++){
-        sum_joint_diff_ += joints_diff[i];
-        path_length_test_.addJoint(i, joints_diff[i]);
-    }
+        for (int i = 0; i < joints_diff.size(); i++){
+            sum_joint_diff_ += joints_diff[i];
+            path_length_test_.addJoint(i, joints_diff[i]);
+        }
 
-    path_length_test_.addPoint(pose);
-    path_length_test_.addPath(trajectory);
+        path_length_test_.addPoint(pose);
+        path_length_test_.addPath(trajectory);
 
-    //sum_joint_diff_ += sum_joint_diff_swap;
-    sum_time_ += time;
-    sum_traj_size_ += trajectory.points.size();
-    num_of_success_++;
-    average_time_ = sum_time_ / num_of_success_;
-    average_joint_diff_ = sum_joint_diff_ / num_of_success_;
-    average_traj_size_ = sum_traj_size_ / num_of_attempt_;
-    success_rate_ = (double)(ik_fails_sum_ + num_of_fails_) / (num_of_attempt_ + ik_fails_sum_);
+        //sum_joint_diff_ += sum_joint_diff_swap;
+        sum_time_ += time;
+        sum_traj_size_ += trajectory.points.size();
+        num_of_success_++;
+        average_time_ = sum_time_ / num_of_success_;
+        average_joint_diff_ = sum_joint_diff_ / num_of_success_;
+        average_traj_size_ = sum_traj_size_ / num_of_attempt_;
+        success_rate_ = (double)(ik_fails_sum_ + num_of_fails_) / (num_of_attempt_ + ik_fails_sum_);
 
-    outfile_joint_diff_ << num_of_success_ << " joint diff: " << sum_joint_diff_swap << " trajectory size: " << trajectory.points.size() << "\n";
+        outfile_joint_diff_ << num_of_success_ << " joint diff: " << sum_joint_diff_swap << " trajectory size: " << trajectory.points.size() << "\n";
 
-    if (sum_joint_diff_swap > 20.0){
-        outfile_joint_diff_ << pose << "\n";
-        bad_trajectory_ ++;
-    }
+        if (sum_joint_diff_swap > 20.0){
+            outfile_joint_diff_ << pose << "\n";
+            bad_trajectory_ ++;
+        }
 
     } else {
 
@@ -490,6 +497,17 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
 
     publishResult();
     writeToFile();
+}
+
+void BinpickingEmulator::createStompStatistics(moveit::planning_interface::MoveItErrorCode success,
+                                               trajectory_msgs::JointTrajectory trajectory, double time,
+                                               const geometry_msgs::Pose pose) {
+    if (success) {
+        stompNumOfSuccess++;
+        stompSumTime += time;
+        stompAvgTime = stompSumTime/stompNumOfSuccess;
+        outfile_stomp_stats_ << stompNumOfSuccess << " Plan time: " << time << " Average time: " << stompAvgTime << " traj. size: " << trajectory.points.size() << std::endl;
+    }
 }
 
 void BinpickingEmulator::publishResult() {

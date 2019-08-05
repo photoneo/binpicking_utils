@@ -127,6 +127,14 @@ private:
     std::vector<int> continuity_checker_;
     int point_id_;
     geometry_msgs::Point last_point_;
+
+    //STOMP statistics
+    std::ofstream outfile_stomp_stats_;
+    double stompAvgTime;
+    double stompSumTime;
+    int stompNumOfSuccess;
+    void createStompStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose);
+
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H
