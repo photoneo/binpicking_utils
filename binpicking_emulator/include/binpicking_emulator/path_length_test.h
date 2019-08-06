@@ -20,7 +20,9 @@ public:
     void addPoint(const geometry_msgs::Pose pose);
     bool addPath(const trajectory_msgs::JointTrajectory &trajectory);
     void addJoint(int idx, double value);
+    double getPathDistance(const geometry_msgs::Pose trajectoryStart, const trajectory_msgs::JointTrajectory &trajectory);
     bool saveLog();
+    bool computeFk(const std::vector<double> start_pose_from_robot_, geometry_msgs::Pose &computed_fk);
 
 private:
     ros::ServiceServer save_log_server_;
@@ -28,7 +30,6 @@ private:
     geometry_msgs::Pose start_pose_;
     moveit_msgs::GetPositionFK fk_srv_;
 
-    bool computeFk(const std::vector<double> start_pose_from_robot_, geometry_msgs::Pose &computed_fk);
     double getDistance(const geometry_msgs::Point start, const geometry_msgs::Point end);
     double getAngle(const geometry_msgs::Quaternion start, const geometry_msgs::Quaternion end);
 

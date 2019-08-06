@@ -25,7 +25,7 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
                                                               log_path_("/home/controller/catkin_ws/planner_test/"),
                                                               outfile_points_("/home/controller/catkin_ws/planner_test/points.txt"),
                                                               path_length_test_(),
-                                                              outfile_stomp_stats_("/home/controller/catkin_ws/planner_test/stomp_stats.txt")
+                                                              outfile_stomp_stats_("/home/controller/catkin_ws/planner_test/stomp_stats.csv")
 {
   // Initialize Moveit group
   group_.reset(new moveit::planning_interface::MoveGroupInterface("manipulator"));
@@ -67,9 +67,12 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle* nh) : trajectory_marker_
   ik_fails_sum_ = 0;
   bad_trajectory_ = 0;
 
-  stompAvgTime = 0;
   stompSumTime = 0;
+  stompSumLength = 0;
   stompNumOfSuccess = 0;
+  stompNumOfFails = 0;
+  stompNumOfPicks = 0;
+  outfile_stomp_stats_ << "ID;Plan time;Trajectory length" << std::endl;
 
     // outfile_time_ = new std::ofstream();
 }
@@ -267,6 +270,9 @@ void BinpickingEmulator::binPickingLoop(){
 
     while (ros::ok()) {
 
+        stompTempTime = 0;
+        stompSuccess = 1;
+        stompPathLength = 0;
         // Set Start state
         //---------------------------------------------------
 
@@ -306,7 +312,7 @@ void BinpickingEmulator::binPickingLoop(){
                                 << planner_fails_[0] << ", " << planner_fails_[1] << ", " << planner_fails_[2] << ", " << planner_fails_[3] << ","
                                 << continuity_checker_[0] << ", " << continuity_checker_[1] << ", " <<  continuity_checker_[2] << ", " << continuity_checker_[3] << "\n";
                 point_id_++;
-                for (int i = 0; i < waypoints.size(); i++){
+                for (int i = 0; i < waypoints.size(); i++) {
                     ik_fails_[i] = 0;
                     planner_fails_[i] = 0;
                     continuity_checker_[i] = 0;
@@ -322,6 +328,13 @@ void BinpickingEmulator::binPickingLoop(){
             std_srvs::Trigger srv;
             sleep(1);
             path_length_test_.saveLog();
+
+            double stompAvgTime = stompSumTime/stompNumOfSuccess;
+            double stompAvgLength = stompSumLength/stompNumOfSuccess;
+            double stompSuccessRate = (double)stompNumOfSuccess/(stompNumOfSuccess+stompNumOfFails);
+            outfile_stomp_stats_ << "Average;" << stompAvgTime << ";" << stompAvgLength << std::endl;
+            outfile_stomp_stats_ << "All picks;" << stompNumOfPicks << std::endl;
+            outfile_stomp_stats_ << "STOMP Success Rate;" << stompSuccessRate << std::endl;
             ros::shutdown();
         }
 
@@ -382,15 +395,23 @@ void BinpickingEmulator::binPickingLoop(){
                 }
 
                 time = ros::Time::now().toSec() - time;
+                stompTempTime += time;
 
                 if (!checkCartesianContinuity(trajectory, 2.2)){
                     success_approach = false;
                     continuity_checker_[i]++;
                 }
                 createStatistics(success_approach, trajectory.joint_trajectory, time, waypoints[i].pose);
-                if (!waypoints[i].is_linear) {
-                    createStompStatistics(success_approach, trajectory.joint_trajectory, time, waypoints[i].pose);
+
+
+                geometry_msgs::Pose start;
+                if(i == 0) {
+                    path_length_test_.computeFk(start_pose_from_robot_, start);
+                } else {
+                    start = waypoints[i-1].pose;
                 }
+                stompPathLength += path_length_test_.getPathDistance(start, trajectory.joint_trajectory);
+
 
                 if (success_approach) {
 
@@ -407,9 +428,14 @@ void BinpickingEmulator::binPickingLoop(){
                     // Visualize trajectory in RViz
                    visualizeTrajectory(trajectory.joint_trajectory);
 
-                } else{
+                } else {
                     ROS_ERROR("Planner failed on waypoint %d",i);
                     planner_fails_[i]++;
+                    if (waypoints[i].is_linear) {
+                        stompSuccess = 2;
+                    } else {
+                        stompSuccess = 0;
+                    }
                     break;
                 }
 
@@ -420,9 +446,12 @@ void BinpickingEmulator::binPickingLoop(){
                 outfile_fails_ik_ << waypoints[i].pose << "\n";
                 ik_fails_sum_++;
                 ik_fails_[i]++;
+                stompSuccess = 2;
                 break;
             }
+            //ros::Duration(1).sleep();
         }
+        createStompStatistics(stompSuccess, stompTempTime, stompPathLength);
     }
 }
 
@@ -499,15 +528,17 @@ void BinpickingEmulator::createStatistics(moveit::planning_interface::MoveItErro
     writeToFile();
 }
 
-void BinpickingEmulator::createStompStatistics(moveit::planning_interface::MoveItErrorCode success,
-                                               trajectory_msgs::JointTrajectory trajectory, double time,
-                                               const geometry_msgs::Pose pose) {
-    if (success) {
+void BinpickingEmulator::createStompStatistics(int success, double time, double pathLength) {
+    if (success == 1) {
+
         stompNumOfSuccess++;
         stompSumTime += time;
-        stompAvgTime = stompSumTime/stompNumOfSuccess;
-        outfile_stomp_stats_ << stompNumOfSuccess << " Plan time: " << time << " Average time: " << stompAvgTime << " traj. size: " << trajectory.points.size() << std::endl;
+        stompSumLength += pathLength;
+        outfile_stomp_stats_ << stompNumOfSuccess << ";" << time << ";" << pathLength << std::endl;
+    } else if (success == 0) {
+        stompNumOfFails++;
     }
+    stompNumOfPicks++;
 }
 
 void BinpickingEmulator::publishResult() {

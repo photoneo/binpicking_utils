@@ -130,10 +130,15 @@ private:
 
     //STOMP statistics
     std::ofstream outfile_stomp_stats_;
-    double stompAvgTime;
+    double stompTempTime;
+    int stompSuccess; // 0-STOMP failed, 1-Success, 2-IK failed or linear planner failed
     double stompSumTime;
     int stompNumOfSuccess;
-    void createStompStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose);
+    int stompNumOfFails;
+    int stompNumOfPicks;
+    double stompPathLength;
+    double stompSumLength;
+    void createStompStatistics(int success, double time, double pathLength);
 
 };  // class
 

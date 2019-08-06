@@ -120,6 +120,20 @@ void PathLengthTest::addJoint(int idx, double value){
     joints_[idx].push_back(value);
 }
 
+double PathLengthTest::getPathDistance(const geometry_msgs::Pose trajectoryStart, const trajectory_msgs::JointTrajectory &trajectory){
+    geometry_msgs::Pose lastPose, newPose;
+    double pathLength = 0;
+    lastPose = trajectoryStart;
+
+    for (auto joint_state : trajectory.points) {
+        if (computeFk(joint_state.positions, newPose)) {
+            pathLength += getDistance(lastPose.position, newPose.position);
+        }
+        lastPose = newPose;
+    }
+    return pathLength;
+}
+
 bool PathLengthTest::saveLog()
 {
     mutex_.lock();
