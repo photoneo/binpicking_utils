@@ -4,8 +4,7 @@
     <!-- Bin pose emulator -->
     <node pkg="bin_pose_emulator" name="vision_system_1" type="bin_pose_emulator" output="screen"/>
 
-    <param name="filepath" value="$(find bin_pose_emulator)/config/bin_pose_emulator.yaml"/>
-
-    <rosparam command="load" file="$(find bin_pose_emulator)/config/bin_pose_emulator.yaml"/>
+    <rosparam command="load" file="$(find bin_pose_emulator)/config/bin_pose_emulator_from_cube.yaml" ns="vision_system_1"/>
+    <!--rosparam command="load" file="$(find bin_pose_emulator)/config/bin_pose_emulator_from_pointcloud.yaml" ns="vision_system_1"/-->
 
 </launch>

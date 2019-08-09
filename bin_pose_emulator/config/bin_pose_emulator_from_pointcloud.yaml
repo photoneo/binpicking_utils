@@ -1,0 +1,33 @@
+# BIN VOLUME TYPE
+# 0 Cube
+# 1 Cube Random
+# 2 Point Cloud
+# 3 Point Cloud Random
+# 4 Single Pose
+bin_volume_type: 2
+
+x_rotation: 0.0
+y_rotation: 0.0
+z_rotation: 0.0
+
+roll_default: 0.0
+pitch_default: 3.14
+yaw_default: 0
+
+roll_range: 0.0
+pitch_range: 0.0
+yaw_range: 0.0
+
+approach_distance: 0.10
+deapproach_height: 0.10
+
+step_x: 0.066
+step_y: 0.067
+step_z: 0.027
+
+step_roll: 0.3
+step_pitch: 0.3
+step_yaw: 1.2
+
+mesh: "/home/controller/catkin_ws/src/pcl_binvox/data/object_1_shifted.ply"
+

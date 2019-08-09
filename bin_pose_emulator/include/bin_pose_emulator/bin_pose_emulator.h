@@ -23,7 +23,7 @@ limitations under the License.
 class BinPoseEmulator : public ActionServerInterface
 {
 public:
-  BinPoseEmulator(ros::NodeHandle &nh, std::string filepath);
+  BinPoseEmulator(ros::NodeHandle &nh);
   ~BinPoseEmulator();
 
   bool callback(bin_pose_msgs::bin_pose::Request& req,

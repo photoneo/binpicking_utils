@@ -20,14 +20,9 @@ int main(int argc, char* argv[])
 {
   ros::init(argc, argv, "bin_pose_emulator");
 
-  // Get config filepath from ROS Param server
-  ros::NodeHandle nh_file;
-  std::string filepath;
-  nh_file.getParam("filepath", filepath);
-
   // Create emulator object
   ros::NodeHandle nh("vision_system_1");
-  BinPoseEmulator emulator(nh, filepath);
+  BinPoseEmulator emulator(nh);
 
   ros::spin();
 

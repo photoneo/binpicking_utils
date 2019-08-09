@@ -7,7 +7,8 @@
 
 #include "bin_pose_emulator/pose_generator/PoseGeneratorBase.h"
 
-namespace pose_generator {
+class PoseGeneratorFromCube : public PoseGeneratorBase{
+public:
     struct ConfigData {
         // Virtual Bin center
         double bin_center_x;
@@ -41,13 +42,10 @@ namespace pose_generator {
         double step_pitch;
         double step_yaw;
     };
-}
 
-class PoseGeneratorFromCube : public PoseGeneratorBase{
-public:
     PoseGeneratorFromCube(ros::NodeHandle &nh);
     virtual bool generate(geometry_msgs::Pose &pose);
-    virtual bool parseConfig(std::string filepath);
+    virtual bool parseConfig(ros::NodeHandle &nh);
     virtual long getNumberOfPoints();
 
 
@@ -55,7 +53,7 @@ public:
 protected:
     virtual void visualizeBin();
     void transformPose(geometry_msgs::Pose &pose);
-    pose_generator::ConfigData config_;
+    ConfigData config_;
     tf::Transform transform_bin_;
 
 private:

@@ -11,12 +11,40 @@
 #include <pho_localization_msgs/PointCloud.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloud.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloudRandom.h>
+#include <bin_pose_emulator/pose_generator/PoseGeneratorFromCube.h>
+#include <bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h>
+#include <bin_pose_emulator/utils.h>
 
-ActionServerInterface::ActionServerInterface(ros::NodeHandle &nh, std::string filepath) :
+ActionServerInterface::ActionServerInterface(ros::NodeHandle &nh) :
 nh_(nh)
 {
-    pose_generator_ = std::make_shared<PoseGeneratorFromPointCloud>(nh_);
-    pose_generator_->parseConfig(filepath);
+    int bin_volume_type = 0;
+    GET_PARAM_REQUIRED(nh,"bin_volume_type",bin_volume_type);
+
+    ROS_INFO("Loaded bin volume type %d", bin_volume_type);
+    switch (bin_volume_type){
+        case PoseGeneratorBase::CUBE:
+            pose_generator_ = std::make_shared<PoseGeneratorFromCube>(nh_);
+            break;
+        case PoseGeneratorBase::CUBE_RANDOM:
+            pose_generator_ = std::make_shared<PoseGeneratorFromCubeRandom>(nh_);
+            break;
+        case PoseGeneratorBase::POINT_CLOUD:
+            pose_generator_ = std::make_shared<PoseGeneratorFromPointCloud>(nh_);
+            break;
+        case PoseGeneratorBase::POINT_CLOUD_RANDOM:
+            pose_generator_ = std::make_shared<PoseGeneratorFromPointCloudRandom>(nh_);
+            break;
+        case PoseGeneratorBase::SINGLE_POSE:
+            //pose_generator_ = std::make_shared<PoseGeneratorFromPointCloud>(nh_);
+           // break;
+
+           default:
+
+                break;
+    }
+
+    pose_generator_->parseConfig(nh);
 
     as_.reset(new actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction>
             (nh_, "scan_and_locate", boost::bind(&ActionServerInterface::actionServerCallback, this, _1), false));
@@ -70,7 +98,7 @@ void ActionServerInterface::publishEmptyCloud(int frameId) {
     status.sceneSourceStatusType.val = pho_localization_msgs::SceneSourceStatusTypes::POINT_CLOUD_AVAILABLE;
 
     pho_localization_msgs::PointCloud cloud_msg;
-    cloud_msg.pointCloud = ( dynamic_cast<PoseGeneratorFromPointCloud*> (pose_generator_.get()))->getPointCloud2();
+    cloud_msg.pointCloud = pose_generator_->getPointCloud2();
 
   //  geometry_msgs::Transform tr(1.823,-0.365,1.499, 1);
    // cloud_msg.sensorOrigin = Eigen::Vector4f(1.823,-0.365,1.499, 1);

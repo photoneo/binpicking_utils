@@ -17,7 +17,7 @@ limitations under the License.
 #include "bin_pose_emulator/bin_pose_emulator.h"
 
 
-BinPoseEmulator::BinPoseEmulator(ros::NodeHandle &nh, std::string filepath) : ActionServerInterface(nh, filepath)
+BinPoseEmulator::BinPoseEmulator(ros::NodeHandle &nh) : ActionServerInterface(nh)
 {
   ROS_WARN("BIN POSE EMULATOR: Ready!");
     // Advertise service

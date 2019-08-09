@@ -10,7 +10,9 @@
 #include <pcl/point_types.h>
 #include <sensor_msgs/PointCloud2.h>
 
-namespace pose_generator {
+
+class PoseGeneratorFromPointCloud : public PoseGeneratorBase{
+public:
     struct ConfigData {
         std::string mesh;
 
@@ -28,21 +30,18 @@ namespace pose_generator {
         double step_pitch;
         double step_yaw;
     };
-}
 
-class PoseGeneratorFromPointCloud : public PoseGeneratorBase{
-public:
     PoseGeneratorFromPointCloud(ros::NodeHandle &nh);
     virtual bool generate(geometry_msgs::Pose &pose);
-    virtual bool parseConfig(std::string filepath);
+    virtual bool parseConfig(ros::NodeHandle &nh);
     virtual long getNumberOfPoints();
-    sensor_msgs::PointCloud2 getPointCloud2();
+    virtual sensor_msgs::PointCloud2 getPointCloud2() override;
 
 
 protected:
     virtual void visualizeBin();
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> space;
-    pose_generator::ConfigData config_;
+    ConfigData config_;
 
 private:
     ros::Publisher point_cloud_pub_;

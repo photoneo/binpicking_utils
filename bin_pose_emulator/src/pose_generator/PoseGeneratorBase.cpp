@@ -74,3 +74,8 @@ void PoseGeneratorBase::visualizePose(geometry_msgs::Pose grasp_pose, double arr
     marker.lifetime = ros::Duration();
     marker_pub_.publish(marker);
 }
+
+sensor_msgs::PointCloud2 PoseGeneratorBase::getPointCloud2(){
+    sensor_msgs::PointCloud2 pc2;
+    return pc2;
+}

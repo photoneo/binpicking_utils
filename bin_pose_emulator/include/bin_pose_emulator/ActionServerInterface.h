@@ -17,7 +17,7 @@
 class ActionServerInterface{
 
 public:
-    ActionServerInterface(ros::NodeHandle &nh, std::string filepath);
+    ActionServerInterface(ros::NodeHandle &nh);
 
     void actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal);
 protected:

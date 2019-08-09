@@ -8,6 +8,8 @@
 #include <yaml-cpp/yaml.h>
 #include <ros/console.h>
 #include <visualization_msgs/Marker.h>
+#include <bin_pose_emulator/utils.h>
+
 
 PoseGeneratorFromCube::PoseGeneratorFromCube(ros::NodeHandle &nh) : PoseGeneratorBase(nh){
 
@@ -79,57 +81,45 @@ bool PoseGeneratorFromCube::generate(geometry_msgs::Pose &pose){
 
 long PoseGeneratorFromCube::getNumberOfPoints(){
 
-    long count = (long)(config_.bin_size_x / config_.step_x) + 1;
-    count *=  (long)(config_.bin_size_y / config_.step_y) + 1;
-    count *=  (long)(config_.bin_size_z / config_.step_z) + 1;
-    count *=  (long)(config_.pitch_range / config_.step_pitch) + 1;
-    count *=  (long)(config_.roll_range / config_.step_roll) + 1;
-    count *=  (long)(config_.yaw_range / config_.step_yaw) + 1;
+    long count = (long)(config_.bin_size_x / config_.step_x);
+    count *=  (long)(config_.bin_size_y / config_.step_y);
+    count *=  (long)(config_.bin_size_z / config_.step_z);
+    count *=  (long)(config_.pitch_range / config_.step_pitch);
+    count *=  (long)(config_.roll_range / config_.step_roll);
+    count *=  (long)(config_.yaw_range / config_.step_yaw);
 
     return count;
 }
 
-bool PoseGeneratorFromCube::parseConfig(std::string filepath) {
+bool PoseGeneratorFromCube::parseConfig(ros::NodeHandle &nh) {
 
-    try {
-        YAML::Node config_file = YAML::LoadFile(filepath);
-        config_.bin_center_x = config_file["bin_center_x"].as<float>();
-        config_.bin_center_y = config_file["bin_center_y"].as<float>();
-        config_.bin_center_z = config_file["bin_center_z"].as<float>();
-        config_.bin_size_x = config_file["bin_size_x"].as<float>();
-        config_.bin_size_y = config_file["bin_size_y"].as<float>();
-        config_.bin_size_z = config_file["bin_size_z"].as<float>();
+    GET_PARAM_REQUIRED(nh,"bin_center_x",config_.bin_center_x);
+    GET_PARAM_REQUIRED(nh,"bin_center_y",config_.bin_center_y);
+    GET_PARAM_REQUIRED(nh,"bin_center_z",config_.bin_center_z);
+    GET_PARAM_REQUIRED(nh,"bin_size_x",config_.bin_size_x);
+    GET_PARAM_REQUIRED(nh,"bin_size_y",config_.bin_size_y);
+    GET_PARAM_REQUIRED(nh,"bin_size_z",config_.bin_size_z);
+    GET_PARAM_REQUIRED(nh,"step_x",config_.step_x);
+    GET_PARAM_REQUIRED(nh,"step_y",config_.step_y);
+    GET_PARAM_REQUIRED(nh,"step_z",config_.step_z);
+    GET_PARAM_REQUIRED(nh,"roll_default",config_.roll_default);
+    GET_PARAM_REQUIRED(nh,"pitch_default",config_.pitch_default);
+    GET_PARAM_REQUIRED(nh,"yaw_default",config_.yaw_default);
+    GET_PARAM_REQUIRED(nh,"roll_range",config_.roll_range);
+    GET_PARAM_REQUIRED(nh,"pitch_range",config_.pitch_range);
+    GET_PARAM_REQUIRED(nh,"yaw_range",config_.yaw_range);
+    GET_PARAM_REQUIRED(nh,"step_roll",config_.step_roll);
+    GET_PARAM_REQUIRED(nh,"step_pitch",config_.step_pitch);
+    GET_PARAM_REQUIRED(nh,"step_yaw",config_.step_yaw);
+    GET_PARAM_REQUIRED(nh,"x_rotation",config_.x_rotation);
+    GET_PARAM_REQUIRED(nh,"y_rotation",config_.y_rotation);
+    GET_PARAM_REQUIRED(nh,"z_rotation",config_.z_rotation);
 
-        config_.roll_default = config_file["roll_default"].as<float>();
-        config_.pitch_default = config_file["pitch_default"].as<float>();
-        config_.yaw_default = config_file["yaw_default"].as<float>();
+    transform_bin_.setOrigin(tf::Vector3(config_.bin_center_x, config_.bin_center_y, config_.bin_center_z));
+    tf::Quaternion q;
+    q.setRPY(config_.x_rotation, config_.y_rotation,config_.z_rotation);
+    transform_bin_.setRotation(q);
 
-        config_.roll_range = config_file["roll_range"].as<float>();
-        config_.pitch_range = config_file["pitch_range"].as<float>();
-        config_.yaw_range = config_file["yaw_range"].as<float>();
-
-        config_.y_rotation = config_file["x_rotation"].as<float>();
-        config_.x_rotation = config_file["y_rotation"].as<float>();
-        config_.z_rotation = config_file["z_rotation"].as<float>();
-
-        config_.step_x = config_file["step_x"].as<float>();
-        config_.step_y = config_file["step_y"].as<float>();
-        config_.step_z = config_file["step_z"].as<float>();
-        config_.step_roll = config_file["step_roll"].as<float>();
-        config_.step_pitch = config_file["step_pitch"].as<float>();
-        config_.step_yaw = config_file["step_yaw"].as<float>();
-
-        ROS_WARN("config parsed %s", filepath.c_str());
-
-        transform_bin_.setOrigin(tf::Vector3(config_.bin_center_x, config_.bin_center_y, config_.bin_center_z));
-        tf::Quaternion q;
-        q.setRPY(config_.x_rotation, config_.y_rotation,config_.z_rotation);
-        transform_bin_.setRotation(q);
-
-    }
-    catch (YAML::ParserException &e) {
-        ROS_ERROR("Bin pose emulator: Error reading yaml config file");
-    }
 }
 
 void PoseGeneratorFromCube::visualizeBin()

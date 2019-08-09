@@ -36,3 +36,7 @@ double PoseGeneratorFromPointCloudRandom::randGen(double fMin, double fMax)
     double f = (double)rand() / RAND_MAX;
     return fMin + f * (fMax - fMin);
 }
+
+long PoseGeneratorFromPointCloudRandom::getNumberOfPoints(){
+    return NUM_OF_POINTS;
+}

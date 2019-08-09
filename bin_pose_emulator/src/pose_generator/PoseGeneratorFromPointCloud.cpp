@@ -8,6 +8,7 @@
 #include <pcl/common/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <yaml-cpp/yaml.h>
+#include <bin_pose_emulator/utils.h>
 
 PoseGeneratorFromPointCloud::PoseGeneratorFromPointCloud(ros::NodeHandle &nh) : PoseGeneratorBase(nh){
     point_cloud_pub_ = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", 1);
@@ -55,31 +56,24 @@ bool PoseGeneratorFromPointCloud::generate(geometry_msgs::Pose &pose){
 long PoseGeneratorFromPointCloud::getNumberOfPoints(){
 
     long count = space->points.size();
-    count *= (long) (config_.pitch_range / config_.step_pitch) + 1;
-    count *= (long) (config_.roll_range / config_.step_roll) + 1;
-    count *= (long) (config_.yaw_range / config_.step_yaw) + 1;
+    count *= (long) (config_.pitch_range / config_.step_pitch);
+    count *= (long) (config_.roll_range / config_.step_roll);
+    count *= (long) (config_.yaw_range / config_.step_yaw);
     return count;
 }
 
-bool PoseGeneratorFromPointCloud::parseConfig(std::string filepath) {
+bool PoseGeneratorFromPointCloud::parseConfig(ros::NodeHandle &nh) {
 
-    try {
-        YAML::Node config_file = YAML::LoadFile(filepath);
-
-        config_.roll_default = config_file["roll_default"].as<float>();
-        config_.pitch_default = config_file["pitch_default"].as<float>();
-        config_.yaw_default = config_file["yaw_default"].as<float>();
-        config_.roll_range = config_file["roll_range"].as<float>();
-        config_.pitch_range = config_file["pitch_range"].as<float>();
-        config_.yaw_range = config_file["yaw_range"].as<float>();
-        config_.step_roll = config_file["step_roll"].as<float>();
-        config_.step_pitch = config_file["step_pitch"].as<float>();
-        config_.step_yaw = config_file["step_yaw"].as<float>();
-        config_.mesh = config_file["mesh"].as<std::string>();
-    }
-    catch (YAML::ParserException &e) {
-        ROS_ERROR("Bin pose emulator: Error reading yaml config file");
-    }
+    GET_PARAM_REQUIRED(nh,"roll_default",config_.roll_default);
+    GET_PARAM_REQUIRED(nh,"pitch_default",config_.pitch_default);
+    GET_PARAM_REQUIRED(nh,"yaw_default",config_.yaw_default);
+    GET_PARAM_REQUIRED(nh,"roll_range",config_.roll_range);
+    GET_PARAM_REQUIRED(nh,"pitch_range",config_.pitch_range);
+    GET_PARAM_REQUIRED(nh,"yaw_range",config_.yaw_range);
+    GET_PARAM_REQUIRED(nh,"step_roll",config_.step_roll);
+    GET_PARAM_REQUIRED(nh,"step_pitch",config_.step_pitch);
+    GET_PARAM_REQUIRED(nh,"step_yaw",config_.step_yaw);
+    GET_PARAM_REQUIRED(nh,"mesh",config_.mesh);
 
     // Load Ply picked object into point cloud
     space = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>(pcl::PointCloud<pcl::PointXYZ>());

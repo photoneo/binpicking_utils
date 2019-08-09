@@ -11,9 +11,12 @@ class PoseGeneratorFromPointCloudRandom : public PoseGeneratorFromPointCloud {
 public:
     PoseGeneratorFromPointCloudRandom(ros::NodeHandle &nh);
     virtual bool generate(geometry_msgs::Pose &pose) override;
+    virtual long getNumberOfPoints() override;
+
 protected:
 private:
     double randGen(double fMin, double fMax);
+    const int NUM_OF_POINTS = 10;
 
 
 
