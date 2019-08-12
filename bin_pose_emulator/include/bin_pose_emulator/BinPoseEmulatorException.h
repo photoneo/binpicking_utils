@@ -7,7 +7,6 @@
 
 #include <exception>
 #include <string>
-#include <pho_robot_loader/constants.h>
 #include <ros/console.h>
 
 /**

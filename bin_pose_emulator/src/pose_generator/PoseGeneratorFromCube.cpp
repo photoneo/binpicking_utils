@@ -113,7 +113,7 @@ bool PoseGeneratorFromCube::parseConfig(ros::NodeHandle& nh) {
     GET_PARAM_REQUIRED(nh,"y_rotation",config.yRotation);
     GET_PARAM_REQUIRED(nh,"z_rotation",config.zRotation);
 
-    transformBin.setOrigin(tf::Vector3(config.binCenterY, config.binCenterY, config.binCenterZ));
+    transformBin.setOrigin(tf::Vector3(config.binCenterX, config.binCenterY, config.binCenterZ));
     tf::Quaternion q;
     q.setRPY(config.xRotation, config.yRotation,config.zRotation);
     transformBin.setRotation(q);

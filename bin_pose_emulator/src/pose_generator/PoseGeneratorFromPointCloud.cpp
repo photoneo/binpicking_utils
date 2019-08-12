@@ -80,7 +80,10 @@ bool PoseGeneratorFromPointCloud::parseConfig(ros::NodeHandle& nh) {
     space = boost::make_shared<pcl::PointCloud<pcl::PointXYZ>>(pcl::PointCloud<pcl::PointXYZ>());
 
     pcl::PLYReader plyReader;
-    plyReader.read(config.mesh, *space);
+    if (plyReader.read(config.mesh, *space) < 0){
+        throw ResourceNotFound(config.mesh);
+    }
+
     if (!space) {
         throw ResourceNotFound(config.mesh);
     }

@@ -14,7 +14,7 @@ PoseGeneratorBase::PoseGeneratorBase(ros::NodeHandle &nh){
 bool PoseGeneratorBase::getPose(geometry_msgs::Pose& pose, double approachDistance) {
 
     visualizeBin();
-    if (!generate(pose){
+    if (!generate(pose)){
         ROS_WARN("Can't generate a new pose");
         return false;
     }

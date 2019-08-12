@@ -14,16 +14,9 @@ roll_default: 0.0
 pitch_default: 3.14
 yaw_default: 0
 
-roll_range: 0.0
-pitch_range: 0.0
-yaw_range: 0.0
-
-approach_distance: 0.10
-deapproach_height: 0.10
-
-step_x: 0.066
-step_y: 0.067
-step_z: 0.027
+roll_range: 0.7
+pitch_range: 0.7
+yaw_range: 6.28
 
 step_roll: 0.3
 step_pitch: 0.3
