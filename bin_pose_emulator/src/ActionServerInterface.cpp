@@ -14,16 +14,16 @@
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromCube.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h>
 #include <bin_pose_emulator/pose_generator/SinglePoseGenerator.h>
+#include <bin_pose_emulator/BinPoseEmulatorException.h>
 #include <bin_pose_emulator/Utils.h>
 
 ActionServerInterface::ActionServerInterface(ros::NodeHandle& nh) :
 nh(nh)
 {
-    int bin_volume_type = 0;
-    GET_PARAM_REQUIRED(nh,"bin_volume_type",bin_volume_type);
+    int binVolumeType = 0;
+    GET_PARAM_REQUIRED(nh,"bin_volume_type",binVolumeType);
 
-    ROS_INFO("Loaded bin volume type %d", bin_volume_type);
-    switch (bin_volume_type){
+    switch (binVolumeType){
         case PoseGeneratorBase::CUBE:
             poseGenerator = std::make_shared<PoseGeneratorFromCube>(nh);
             break;
@@ -40,7 +40,7 @@ nh(nh)
             poseGenerator = std::make_shared<SinglePoseGenerator>(nh);
             break;
          default:
-             break;
+             throw BinPoseEmulatorException("Wrong bin volume type: " + std::to_string(binVolumeType));
     }
 
     poseGenerator->parseConfig(nh);
@@ -56,28 +56,30 @@ nh(nh)
 
 void ActionServerInterface::actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal) {
 
-    int object_id = 0;
-    static int p_frame = 0;
-    acquisitionComplete(p_frame);
+    int objectId = 0;
+    static int pFrame = 0;
+    acquisitionComplete(pFrame);
     ros::Duration(0.2).sleep();
-    publishEmptyCloud(p_frame);
+    publishEmptyCloud(pFrame);
 
     ros::Duration(1.0).sleep();
 
     long num_of_position = poseGenerator->getNumberOfPoints();
-    ROS_WARN("Simulation started. Prepared are %d poses", num_of_position);
+    ROS_INFO("Simulation started. Prepared are %d poses", num_of_position);
 
     pho_localization::ScanAndLocateFeedback feedback;
     for (int i = 0; i < num_of_position; i++) {
-        feedback.object.header.seq = object_id;
+        feedback.object.header.seq = objectId;
         feedback.object.header.frame_id = "base_link";
         feedback.object.header.stamp = ros::Time::now();
-        feedback.object.id = object_id++;
+        feedback.object.id = objectId++;
         feedback.object.occluded = false;
-        feedback.object.p_frame_id = p_frame;
+        feedback.object.p_frame_id = pFrame;
         feedback.object.visibleOverlap = true;
-        poseGenerator->getPose(feedback.object.pose, 0.3);
-        ROS_INFO_STREAM(feedback.object);
+        if (!poseGenerator->getPose(feedback.object.pose, 0.3)) {
+            break;
+        }
+        ROS_DEBUG_STREAM(feedback.object);
         as->publishFeedback(feedback);
         ros::Duration(0.1).sleep();
     }
@@ -86,9 +88,8 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
     result.error_code.val = pho_localization_msgs::PhoLocalizationErrorCodes::SUCCESS;
     as->setSucceeded(result);
 
-    p_frame++;
+    pFrame++;
 }
-
 
 void ActionServerInterface::publishEmptyCloud(int frameId) {
 
@@ -98,19 +99,10 @@ void ActionServerInterface::publishEmptyCloud(int frameId) {
 
     pho_localization_msgs::PointCloud cloud_msg;
     cloud_msg.pointCloud = poseGenerator->getPointCloud2();
-
-  //  geometry_msgs::Transform tr(1.823,-0.365,1.499, 1);
-   // cloud_msg.sensorOrigin = Eigen::Vector4f(1.823,-0.365,1.499, 1);
-
     cloud_msg.scanType.val = 1;
-
- //   pcl::toROSMsg(cloud, cloudMsg);
-   // std::cout << cloudMsg.header.frame_id << std::endl;
     cloud_msg.pointCloud.header.stamp = ros::Time::now();
     cloud_msg.pointCloud.header.frame_id = "base_link";
-   // std::cout << "header seq " << headerSeq << std::endl;
     cloud_msg.pointCloud.header.seq = frameId;
-   // std::cout << cloud_msg.header.seq << std::endl;
     status.pointCloud = cloud_msg;
 
     statusPublisher.publish(status);

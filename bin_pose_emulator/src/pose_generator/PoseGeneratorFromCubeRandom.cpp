@@ -31,6 +31,7 @@ bool PoseGeneratorFromCubeRandom::generate(geometry_msgs::Pose& pose) {
     pose.orientation.w = graspOrientation.getW();
 
     transformPose(pose);
+    return true;
 }
 
 double PoseGeneratorFromCubeRandom::randGen(double fMin, double fMax)

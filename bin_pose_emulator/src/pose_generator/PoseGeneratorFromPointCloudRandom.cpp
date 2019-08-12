@@ -29,6 +29,7 @@ bool PoseGeneratorFromPointCloudRandom::generate(geometry_msgs::Pose& pose) {
     pose.orientation.y = grasp_orientation.getY();
     pose.orientation.z = grasp_orientation.getZ();
     pose.orientation.w = grasp_orientation.getW();
+    return true;
 }
 
 double PoseGeneratorFromPointCloudRandom::randGen(double fMin, double fMax)

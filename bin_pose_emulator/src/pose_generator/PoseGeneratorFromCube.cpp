@@ -4,9 +4,6 @@
 
 
 #include "bin_pose_emulator/pose_generator/PoseGeneratorFromCube.h"
-
-#include <yaml-cpp/yaml.h>
-#include <ros/console.h>
 #include <visualization_msgs/Marker.h>
 #include <bin_pose_emulator/Utils.h>
 
@@ -57,7 +54,7 @@ bool PoseGeneratorFromCube::generate(geometry_msgs::Pose& pose){
                             roll = config.rollDefault -config.rollRange / 2;
                             pitch = config.pitchDefault -config.pitchRange / 2;
                             yaw = config.yawDefault -config.yawRange / 2;
-                            return true;
+                            return false;
                         }
                     }
                 }
@@ -77,6 +74,7 @@ bool PoseGeneratorFromCube::generate(geometry_msgs::Pose& pose){
     pose.orientation.w = graspOrientation.getW();
 
     transformPose(pose);
+    return true;
 }
 
 long PoseGeneratorFromCube::getNumberOfPoints(){

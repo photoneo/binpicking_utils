@@ -7,8 +7,9 @@
 #include <pcl/io/ply_io.h>
 #include <pcl/common/transforms.h>
 #include <pcl_conversions/pcl_conversions.h>
-#include <yaml-cpp/yaml.h>
 #include <bin_pose_emulator/Utils.h>
+
+#include <bin_pose_emulator/BinPoseEmulatorException.h>
 
 PoseGeneratorFromPointCloud::PoseGeneratorFromPointCloud(ros::NodeHandle& nh) : PoseGeneratorBase(nh){
     pointCloudPub = nh.advertise<sensor_msgs::PointCloud2>("pointcloud", 1);
@@ -81,8 +82,7 @@ bool PoseGeneratorFromPointCloud::parseConfig(ros::NodeHandle& nh) {
     pcl::PLYReader plyReader;
     plyReader.read(config.mesh, *space);
     if (!space) {
-        ROS_ERROR("Unable to open file");
-        return false;
+        throw ResourceNotFound(config.mesh);
     }
 
     for (auto &point : *space){
