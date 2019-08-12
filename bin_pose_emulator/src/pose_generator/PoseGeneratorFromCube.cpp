@@ -8,55 +8,55 @@
 #include <yaml-cpp/yaml.h>
 #include <ros/console.h>
 #include <visualization_msgs/Marker.h>
-#include <bin_pose_emulator/utils.h>
+#include <bin_pose_emulator/Utils.h>
 
 
-PoseGeneratorFromCube::PoseGeneratorFromCube(ros::NodeHandle &nh) : PoseGeneratorBase(nh){
+PoseGeneratorFromCube::PoseGeneratorFromCube(ros::NodeHandle& nh) : PoseGeneratorBase(nh){
 
-    transform_bin_.setOrigin(tf::Vector3(0,0,0));
-    transform_bin_.setRotation(tf::Quaternion(0,0,0,1));
+    transformBin.setOrigin(tf::Vector3(0,0,0));
+    transformBin.setRotation(tf::Quaternion(0,0,0,1));
 }
 
-bool PoseGeneratorFromCube::generate(geometry_msgs::Pose &pose){
+bool PoseGeneratorFromCube::generate(geometry_msgs::Pose& pose){
 
-    static double x =  -config_.bin_size_x / 2;
-    static double y =  -config_.bin_size_y / 2;
-    static double z =  -config_.bin_size_z / 2;
+    static double x =  -config.binSizeX / 2;
+    static double y =  -config.binSizeY / 2;
+    static double z =  -config.binSizeZ / 2;
 
-    static double roll = config_.roll_default -config_.roll_range / 2;
-    static double pitch = config_.pitch_default -config_.pitch_range / 2;
-    static double yaw = config_.yaw_default -config_.yaw_range / 2;
+    static double roll = config.rollDefault -config.rollRange / 2;
+    static double pitch = config.pitchDefault -config.pitchRange / 2;
+    static double yaw = config.yawDefault -config.yawRange / 2;
 
-    yaw += config_.step_yaw;
-    if (yaw >= config_.yaw_default + config_.yaw_range / 2){
-        yaw = config_.yaw_default - config_.yaw_range / 2;
-        pitch += config_.step_pitch;
+    yaw += config.stepYaw;
+    if (yaw >= config.yawDefault + config.yawRange / 2){
+        yaw = config.yawDefault - config.yawRange / 2;
+        pitch += config.stepPitch;
 
-        if (pitch >= config_.pitch_default + config_.pitch_range / 2) {
-            pitch = config_.pitch_default - config_.pitch_range / 2;
-            roll += config_.step_roll;
+        if (pitch >= config.pitchDefault + config.pitchRange / 2) {
+            pitch = config.pitchDefault - config.pitchRange / 2;
+            roll += config.stepRoll;
 
-            if (roll >= config_.roll_default + config_.roll_range / 2) {
-                roll = config_.roll_default - config_.roll_range / 2;
-                x += config_.step_x;
+            if (roll >= config.rollDefault + config.rollRange / 2) {
+                roll = config.rollDefault - config.rollRange / 2;
+                x += config.stepX;
 
-                if (x >= config_.bin_size_x / 2) {
-                    x = -config_.bin_size_x / 2;
-                    y += config_.step_y;
+                if (x >= config.binSizeX / 2) {
+                    x = -config.binSizeX / 2;
+                    y += config.stepY;
 
-                    if (y >= config_.bin_size_y / 2) {
-                        y = -config_.bin_size_y / 2;
-                        z += config_.step_z;
+                    if (y >= config.binSizeY / 2) {
+                        y = -config.binSizeY / 2;
+                        z += config.stepZ;
 
-                        if (z >= config_.bin_size_z / 2) {
+                        if (z >= config.binSizeZ / 2) {
 
-                            x = -config_.bin_size_x / 2;
-                            y = -config_.bin_size_y / 2;
-                            z = -config_.bin_size_z / 2;
+                            x = -config.binSizeX / 2;
+                            y = -config.binSizeY / 2;
+                            z = -config.binSizeZ / 2;
 
-                            roll = config_.roll_default -config_.roll_range / 2;
-                            pitch = config_.pitch_default -config_.pitch_range / 2;
-                            yaw = config_.yaw_default -config_.yaw_range / 2;
+                            roll = config.rollDefault -config.rollRange / 2;
+                            pitch = config.pitchDefault -config.pitchRange / 2;
+                            yaw = config.yawDefault -config.yawRange / 2;
                             return true;
                         }
                     }
@@ -69,63 +69,62 @@ bool PoseGeneratorFromCube::generate(geometry_msgs::Pose &pose){
     pose.position.y = y;
     pose.position.z = z;
 
-    tf::Quaternion grasp_orientation;
-    grasp_orientation.setRPY(roll, pitch, yaw);
-    pose.orientation.x = grasp_orientation.getX();
-    pose.orientation.y = grasp_orientation.getY();
-    pose.orientation.z = grasp_orientation.getZ();
-    pose.orientation.w = grasp_orientation.getW();
+    tf::Quaternion graspOrientation;
+    graspOrientation.setRPY(roll, pitch, yaw);
+    pose.orientation.x = graspOrientation.getX();
+    pose.orientation.y = graspOrientation.getY();
+    pose.orientation.z = graspOrientation.getZ();
+    pose.orientation.w = graspOrientation.getW();
 
     transformPose(pose);
 }
 
 long PoseGeneratorFromCube::getNumberOfPoints(){
 
-    long count = (long)(config_.bin_size_x / config_.step_x);
-    count *=  (long)(config_.bin_size_y / config_.step_y);
-    count *=  (long)(config_.bin_size_z / config_.step_z);
-    count *=  (long)(config_.pitch_range / config_.step_pitch);
-    count *=  (long)(config_.roll_range / config_.step_roll);
-    count *=  (long)(config_.yaw_range / config_.step_yaw);
+    long count = (long)(config.binSizeX / config.stepX);
+    count *=  (long)(config.binSizeY / config.stepY);
+    count *=  (long)(config.binSizeZ / config.stepZ);
+    count *=  (long)(config.pitchRange / config.stepPitch);
+    count *=  (long)(config.rollRange / config.stepRoll);
+    count *=  (long)(config.yawRange / config.stepYaw);
 
     return count;
 }
 
-bool PoseGeneratorFromCube::parseConfig(ros::NodeHandle &nh) {
+bool PoseGeneratorFromCube::parseConfig(ros::NodeHandle& nh) {
 
-    GET_PARAM_REQUIRED(nh,"bin_center_x",config_.bin_center_x);
-    GET_PARAM_REQUIRED(nh,"bin_center_y",config_.bin_center_y);
-    GET_PARAM_REQUIRED(nh,"bin_center_z",config_.bin_center_z);
-    GET_PARAM_REQUIRED(nh,"bin_size_x",config_.bin_size_x);
-    GET_PARAM_REQUIRED(nh,"bin_size_y",config_.bin_size_y);
-    GET_PARAM_REQUIRED(nh,"bin_size_z",config_.bin_size_z);
-    GET_PARAM_REQUIRED(nh,"step_x",config_.step_x);
-    GET_PARAM_REQUIRED(nh,"step_y",config_.step_y);
-    GET_PARAM_REQUIRED(nh,"step_z",config_.step_z);
-    GET_PARAM_REQUIRED(nh,"roll_default",config_.roll_default);
-    GET_PARAM_REQUIRED(nh,"pitch_default",config_.pitch_default);
-    GET_PARAM_REQUIRED(nh,"yaw_default",config_.yaw_default);
-    GET_PARAM_REQUIRED(nh,"roll_range",config_.roll_range);
-    GET_PARAM_REQUIRED(nh,"pitch_range",config_.pitch_range);
-    GET_PARAM_REQUIRED(nh,"yaw_range",config_.yaw_range);
-    GET_PARAM_REQUIRED(nh,"step_roll",config_.step_roll);
-    GET_PARAM_REQUIRED(nh,"step_pitch",config_.step_pitch);
-    GET_PARAM_REQUIRED(nh,"step_yaw",config_.step_yaw);
-    GET_PARAM_REQUIRED(nh,"x_rotation",config_.x_rotation);
-    GET_PARAM_REQUIRED(nh,"y_rotation",config_.y_rotation);
-    GET_PARAM_REQUIRED(nh,"z_rotation",config_.z_rotation);
+    GET_PARAM_REQUIRED(nh,"bin_center_x",config.binCenterX);
+    GET_PARAM_REQUIRED(nh,"bin_center_y",config.binCenterY);
+    GET_PARAM_REQUIRED(nh,"bin_center_z",config.binCenterZ);
+    GET_PARAM_REQUIRED(nh,"bin_size_x",config.binSizeX);
+    GET_PARAM_REQUIRED(nh,"bin_size_y",config.binSizeY);
+    GET_PARAM_REQUIRED(nh,"bin_size_z",config.binSizeZ);
+    GET_PARAM_REQUIRED(nh,"step_x",config.stepX);
+    GET_PARAM_REQUIRED(nh,"step_y",config.stepY);
+    GET_PARAM_REQUIRED(nh,"step_z",config.stepZ);
+    GET_PARAM_REQUIRED(nh,"roll_default",config.rollDefault);
+    GET_PARAM_REQUIRED(nh,"pitch_default",config.pitchDefault);
+    GET_PARAM_REQUIRED(nh,"yaw_default",config.yawDefault);
+    GET_PARAM_REQUIRED(nh,"roll_range",config.rollRange);
+    GET_PARAM_REQUIRED(nh,"pitch_range",config.pitchRange);
+    GET_PARAM_REQUIRED(nh,"yaw_range",config.yawRange);
+    GET_PARAM_REQUIRED(nh,"step_roll",config.stepRoll);
+    GET_PARAM_REQUIRED(nh,"step_pitch",config.stepPitch);
+    GET_PARAM_REQUIRED(nh,"step_yaw",config.stepYaw);
+    GET_PARAM_REQUIRED(nh,"x_rotation",config.xRotation);
+    GET_PARAM_REQUIRED(nh,"y_rotation",config.yRotation);
+    GET_PARAM_REQUIRED(nh,"z_rotation",config.zRotation);
 
-    transform_bin_.setOrigin(tf::Vector3(config_.bin_center_x, config_.bin_center_y, config_.bin_center_z));
+    transformBin.setOrigin(tf::Vector3(config.binCenterY, config.binCenterY, config.binCenterZ));
     tf::Quaternion q;
-    q.setRPY(config_.x_rotation, config_.y_rotation,config_.z_rotation);
-    transform_bin_.setRotation(q);
-
+    q.setRPY(config.xRotation, config.yRotation,config.zRotation);
+    transformBin.setRotation(q);
 }
 
 void PoseGeneratorFromCube::visualizeBin()
 {
     //Create transformation, set origin and rotation and finally send
-    broadcaster_.sendTransform(tf::StampedTransform(transform_bin_, ros::Time::now(),"base_link", "bin"));
+    broadcaster.sendTransform(tf::StampedTransform(transformBin, ros::Time::now(),"base_link", "bin"));
 
     uint32_t shape = visualization_msgs::Marker::CUBE;
     visualization_msgs::Marker marker;
@@ -138,9 +137,9 @@ void PoseGeneratorFromCube::visualizeBin()
     marker.type = shape;
     marker.action = visualization_msgs::Marker::ADD;
 
-    marker.scale.x = config_.bin_size_x;
-    marker.scale.y = config_.bin_size_y;
-    marker.scale.z = config_.bin_size_z;
+    marker.scale.x = config.binSizeX;
+    marker.scale.y = config.binSizeY;
+    marker.scale.z = config.binSizeZ;
 
     marker.color.r = 0.8f;
     marker.color.g = 0.0f;
@@ -148,12 +147,12 @@ void PoseGeneratorFromCube::visualizeBin()
     marker.color.a = 0.5;
 
     marker.lifetime = ros::Duration();
-    marker_pub_.publish(marker);
+    markerPub.publish(marker);
 }
 
-void PoseGeneratorFromCube::transformPose(geometry_msgs::Pose &pose){
-    tf::Transform object_transform;
-    tf::poseMsgToTF(pose, object_transform);
-    tf::Transform result = transform_bin_ * object_transform;
+void PoseGeneratorFromCube::transformPose(geometry_msgs::Pose& pose){
+    tf::Transform objectTransform;
+    tf::poseMsgToTF(pose, objectTransform);
+    tf::Transform result = transformBin * objectTransform;
     tf::poseTFToMsg(result, pose);
 }

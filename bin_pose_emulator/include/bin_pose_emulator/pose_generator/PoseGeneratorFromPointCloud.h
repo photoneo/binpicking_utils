@@ -11,29 +11,29 @@
 #include <sensor_msgs/PointCloud2.h>
 
 
-class PoseGeneratorFromPointCloud : public PoseGeneratorBase{
+class PoseGeneratorFromPointCloud : public PoseGeneratorBase {
 public:
     struct ConfigData {
         std::string mesh;
 
         // Default tool point orientation
-        double roll_default;
-        double pitch_default;
-        double yaw_default;
+        double rollDefault;
+        double pitchDefault;
+        double yawDefault;
 
         // Allowed orientation range
-        double roll_range;
-        double pitch_range;
-        double yaw_range;
+        double rollRange;
+        double pitchRange;
+        double yawRange;
 
-        double step_roll;
-        double step_pitch;
-        double step_yaw;
+        double stepRoll;
+        double stepPitch;
+        double stepYaw;
     };
 
-    PoseGeneratorFromPointCloud(ros::NodeHandle &nh);
-    virtual bool generate(geometry_msgs::Pose &pose);
-    virtual bool parseConfig(ros::NodeHandle &nh);
+    PoseGeneratorFromPointCloud(ros::NodeHandle& nh);
+    virtual bool generate(geometry_msgs::Pose& pose);
+    virtual bool parseConfig(ros::NodeHandle& nh);
     virtual long getNumberOfPoints();
     virtual sensor_msgs::PointCloud2 getPointCloud2() override;
 
@@ -41,11 +41,11 @@ public:
 protected:
     virtual void visualizeBin();
     boost::shared_ptr<pcl::PointCloud<pcl::PointXYZ>> space;
-    ConfigData config_;
+    ConfigData config;
 
 private:
-    ros::Publisher point_cloud_pub_;
-    sensor_msgs::PointCloud2 point_cloud_msg_;
+    ros::Publisher pointCloudPub;
+    sensor_msgs::PointCloud2 pointCloudMsg;
 };
 
 #endif //PROJECT_POSEGENERATORFROMPOINTCLOUD_H

@@ -9,8 +9,8 @@
 
 class PoseGeneratorFromPointCloudRandom : public PoseGeneratorFromPointCloud {
 public:
-    PoseGeneratorFromPointCloudRandom(ros::NodeHandle &nh);
-    virtual bool generate(geometry_msgs::Pose &pose) override;
+    PoseGeneratorFromPointCloudRandom(ros::NodeHandle& nh);
+    virtual bool generate(geometry_msgs::Pose& pose) override;
     virtual long getNumberOfPoints() override;
 
 protected:

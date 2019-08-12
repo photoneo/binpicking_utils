@@ -5,30 +5,30 @@
 
 #include "bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h"
 
-PoseGeneratorFromCubeRandom::PoseGeneratorFromCubeRandom(ros::NodeHandle &nh) : PoseGeneratorFromCube(nh){
+PoseGeneratorFromCubeRandom::PoseGeneratorFromCubeRandom(ros::NodeHandle& nh) : PoseGeneratorFromCube(nh){
     srandom(time(NULL));
 }
 
-bool PoseGeneratorFromCubeRandom::generate(geometry_msgs::Pose &pose) {
+bool PoseGeneratorFromCubeRandom::generate(geometry_msgs::Pose& pose) {
 
-    pose.position.x = randGen( - config_.bin_size_x / 2, config_.bin_size_x / 2);
-    pose.position.y = randGen( - config_.bin_size_y / 2, config_.bin_size_y / 2);
-    pose.position.z = randGen( - config_.bin_size_z / 2, config_.bin_size_z / 2);
+    pose.position.x = randGen( - config.binSizeX / 2, config.binSizeX / 2);
+    pose.position.y = randGen( - config.binSizeY / 2, config.binSizeY / 2);
+    pose.position.z = randGen( - config.binSizeZ / 2, config.binSizeZ / 2);
 
-    double roll = randGen(config_.roll_default - config_.roll_range / 2,
-                                config_.roll_default + config_.roll_range / 2);
-    double pitch = randGen(config_.pitch_default - config_.pitch_range / 2,
-                                 config_.pitch_default + config_.pitch_range / 2);
-    double yaw = randGen(config_.yaw_default - config_.yaw_range / 2,
-                               config_.yaw_default + config_.yaw_range / 2);
+    double roll = randGen(config.rollDefault - config.rollRange / 2,
+                                config.rollDefault + config.rollRange / 2);
+    double pitch = randGen(config.pitchDefault - config.pitchRange / 2,
+                                 config.pitchDefault + config.pitchRange / 2);
+    double yaw = randGen(config.yawDefault - config.yawRange / 2,
+                               config.yawDefault + config.yawRange / 2);
 
 
-    tf::Quaternion grasp_orientation;
-    grasp_orientation.setRPY(roll, pitch, yaw);
-    pose.orientation.x = grasp_orientation.getX();
-    pose.orientation.y = grasp_orientation.getY();
-    pose.orientation.z = grasp_orientation.getZ();
-    pose.orientation.w = grasp_orientation.getW();
+    tf::Quaternion graspOrientation;
+    graspOrientation.setRPY(roll, pitch, yaw);
+    pose.orientation.x = graspOrientation.getX();
+    pose.orientation.y = graspOrientation.getY();
+    pose.orientation.z = graspOrientation.getZ();
+    pose.orientation.w = graspOrientation.getW();
 
     transformPose(pose);
 }

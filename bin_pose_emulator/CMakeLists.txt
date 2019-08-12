@@ -33,25 +33,18 @@ include_directories(
 
 add_executable(
   ${PROJECT_NAME}
-  src/bin_pose_emulator.cpp
-  src/bin_pose_emulator_node.cpp
-  src/ActionServerInterface.cpp
-  src/pose_generator/PoseGeneratorBase.cpp
-  src/pose_generator/PoseGeneratorFromCube.cpp
-  src/pose_generator/PoseGeneratorFromCubeRandom.cpp
-  src/pose_generator/PoseGeneratorFromPointCloud.cpp
-  src/pose_generator/PoseGeneratorFromPointCloudRandom.cpp
+        src/BinPoseEmulator.cpp
+        src/BinPoseEmulatorNode.cpp
+        src/ActionServerInterface.cpp
+        src/pose_generator/PoseGeneratorBase.cpp
+        src/pose_generator/PoseGeneratorFromCube.cpp
+        src/pose_generator/PoseGeneratorFromCubeRandom.cpp
+        src/pose_generator/PoseGeneratorFromPointCloud.cpp
+        src/pose_generator/PoseGeneratorFromPointCloudRandom.cpp
 )
 
-
-#add_executable(
-#        visualizer
-#        src/visualizer.cpp
-#        src/bin_pose_emulator.cpp
-#        src/pose_generator/PoseGeneratorBase.cpp)
   
 add_dependencies(bin_pose_emulator ${catkin_EXPORTED_TARGETS})
-#add_dependencies(visualizer ${catkin_EXPORTED_TARGETS})
 
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
@@ -62,14 +55,6 @@ target_link_libraries(
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
   yaml-cpp)
-
-
-
-#target_link_libraries(
-#        visualizer
-#        ${catkin_LIBRARIES}
-#        ${PCL_LIBRARIES}
-#        yaml-cpp)
 
 # binaries
 install(TARGETS

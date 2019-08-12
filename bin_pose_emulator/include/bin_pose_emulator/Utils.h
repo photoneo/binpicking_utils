@@ -10,15 +10,15 @@
 #define PARAMETER_LOG_NAME "param"
 
 
-#define GET_PARAM_LOGGED(nodeHandle,paramName,paramVariable,defaultValue) \
+#define GET_PARAM_LOGGED(nodeHandle, paramName, paramVariable, defaultValue) \
     do{ \
-        bool ret = nodeHandle.param(paramName,paramVariable,defaultValue);\
+        bool ret = nodeHandle.param(paramName, paramVariable, defaultValue);\
         ROS_WARN_COND_NAMED(!ret,PARAMETER_LOG_NAME,"%s",(std::string(paramName) + " not found, using default").c_str());\
         phoLog::printParam(paramName,paramVariable);\
     }while(false)
 
-#define GET_PARAM_REQUIRED(nodeHandle,paramName,paramVariable) \
-    if(!nodeHandle.getParam(paramName,paramVariable)){\
+#define GET_PARAM_REQUIRED(nodeHandle, paramName, paramVariable) \
+    if(!nodeHandle.getParam(paramName, paramVariable)){\
         ROS_FATAL_NAMED(PARAMETER_LOG_NAME,"%s",(std::string("Failed to get required parameter: ") + paramName).c_str());\
         std::terminate();\
     }

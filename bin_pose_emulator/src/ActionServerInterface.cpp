@@ -13,10 +13,10 @@
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloudRandom.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromCube.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h>
-#include <bin_pose_emulator/utils.h>
+#include <bin_pose_emulator/Utils.h>
 
-ActionServerInterface::ActionServerInterface(ros::NodeHandle &nh) :
-nh_(nh)
+ActionServerInterface::ActionServerInterface(ros::NodeHandle& nh) :
+nh(nh)
 {
     int bin_volume_type = 0;
     GET_PARAM_REQUIRED(nh,"bin_volume_type",bin_volume_type);
@@ -24,19 +24,19 @@ nh_(nh)
     ROS_INFO("Loaded bin volume type %d", bin_volume_type);
     switch (bin_volume_type){
         case PoseGeneratorBase::CUBE:
-            pose_generator_ = std::make_shared<PoseGeneratorFromCube>(nh_);
+            poseGenerator = std::make_shared<PoseGeneratorFromCube>(nh);
             break;
         case PoseGeneratorBase::CUBE_RANDOM:
-            pose_generator_ = std::make_shared<PoseGeneratorFromCubeRandom>(nh_);
+            poseGenerator = std::make_shared<PoseGeneratorFromCubeRandom>(nh);
             break;
         case PoseGeneratorBase::POINT_CLOUD:
-            pose_generator_ = std::make_shared<PoseGeneratorFromPointCloud>(nh_);
+            poseGenerator = std::make_shared<PoseGeneratorFromPointCloud>(nh);
             break;
         case PoseGeneratorBase::POINT_CLOUD_RANDOM:
-            pose_generator_ = std::make_shared<PoseGeneratorFromPointCloudRandom>(nh_);
+            poseGenerator = std::make_shared<PoseGeneratorFromPointCloudRandom>(nh);
             break;
         case PoseGeneratorBase::SINGLE_POSE:
-            //pose_generator_ = std::make_shared<PoseGeneratorFromPointCloud>(nh_);
+            //poseGenerator = std::make_shared<PoseGeneratorFromPointCloud>(nh);
            // break;
 
            default:
@@ -44,15 +44,15 @@ nh_(nh)
                 break;
     }
 
-    pose_generator_->parseConfig(nh);
+    poseGenerator->parseConfig(nh);
 
-    as_.reset(new actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction>
-            (nh_, "scan_and_locate", boost::bind(&ActionServerInterface::actionServerCallback, this, _1), false));
+    as.reset(new actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction>
+            (nh, "scan_and_locate", boost::bind(&ActionServerInterface::actionServerCallback, this, _1), false));
 
-    statusPublisher = nh_.advertise<pho_localization_msgs::SceneSourceStatus>("scene_source_status", 100);
+    statusPublisher = nh.advertise<pho_localization_msgs::SceneSourceStatus>("scene_source_status", 100);
 
     //start ROS interface
-    as_->start();
+    as->start();
 }
 
 void ActionServerInterface::actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal) {
@@ -65,7 +65,7 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
 
     ros::Duration(1.0).sleep();
 
-    long num_of_position = pose_generator_->getNumberOfPoints();
+    long num_of_position = poseGenerator->getNumberOfPoints();
     ROS_WARN("Simulation started. Prepared are %d poses", num_of_position);
 
     pho_localization::ScanAndLocateFeedback feedback;
@@ -77,15 +77,15 @@ void ActionServerInterface::actionServerCallback(const pho_localization::ScanAnd
         feedback.object.occluded = false;
         feedback.object.p_frame_id = p_frame;
         feedback.object.visibleOverlap = true;
-        pose_generator_->getPose(feedback.object.pose, 0.3);
+        poseGenerator->getPose(feedback.object.pose, 0.3);
         ROS_INFO_STREAM(feedback.object);
-        as_->publishFeedback(feedback);
+        as->publishFeedback(feedback);
         ros::Duration(0.1).sleep();
     }
 
     pho_localization::ScanAndLocateResult result;
     result.error_code.val = pho_localization_msgs::PhoLocalizationErrorCodes::SUCCESS;
-    as_->setSucceeded(result);
+    as->setSucceeded(result);
 
     p_frame++;
 }
@@ -98,7 +98,7 @@ void ActionServerInterface::publishEmptyCloud(int frameId) {
     status.sceneSourceStatusType.val = pho_localization_msgs::SceneSourceStatusTypes::POINT_CLOUD_AVAILABLE;
 
     pho_localization_msgs::PointCloud cloud_msg;
-    cloud_msg.pointCloud = pose_generator_->getPointCloud2();
+    cloud_msg.pointCloud = poseGenerator->getPointCloud2();
 
   //  geometry_msgs::Transform tr(1.823,-0.365,1.499, 1);
    // cloud_msg.sensorOrigin = Eigen::Vector4f(1.823,-0.365,1.499, 1);
@@ -117,7 +117,7 @@ void ActionServerInterface::publishEmptyCloud(int frameId) {
     statusPublisher.publish(status);
 }
 
-void ActionServerInterface::acquisitionComplete(int frameId){
+void ActionServerInterface::acquisitionComplete(int frameId) {
     ROS_DEBUG("Aquisition complete. Frame id: %d",frameId);
     pho_localization_msgs::SceneSourceStatus status;
     status.sceneSourceStatusType.val = pho_localization_msgs::SceneSourceStatusTypes::ACQUISITION_COMPLETE;

@@ -14,25 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
  *********************************************************************/
 
-#include "bin_pose_emulator/bin_pose_emulator.h"
+#include "bin_pose_emulator/BinPoseEmulator.h"
 
 
-BinPoseEmulator::BinPoseEmulator(ros::NodeHandle &nh) : ActionServerInterface(nh)
-{
+BinPoseEmulator::BinPoseEmulator(ros::NodeHandle& nh) : ActionServerInterface(nh) {
   ROS_WARN("BIN POSE EMULATOR: Ready!");
     // Advertise service
     service = nh.advertiseService("bin_pose", &BinPoseEmulator::callback, this);
 }
 
-BinPoseEmulator::~BinPoseEmulator() {}
+BinPoseEmulator::~BinPoseEmulator() {
 
-bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req,
-                        bin_pose_msgs::bin_pose::Response& res)
-{
+}
+
+bool BinPoseEmulator::callback(bin_pose_msgs::bin_pose::Request& req, bin_pose_msgs::bin_pose::Response& res) {
 
   //-----------------------------------------------------------------------------------------
   // Generate random Grasp pose
-    pose_generator_->getPose(res.grasp_pose, req.approach_distance);
+    poseGenerator->getPose(res.grasp_pose, req.approach_distance);
 
   //------------------------------------------------------------------------------------------
   // Calculate Approach pose according to existing grasp pose

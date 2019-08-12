@@ -20,10 +20,9 @@ limitations under the License.
 #include <bin_pose_emulator/ActionServerInterface.h>
 #include <bin_pose_msgs/bin_pose.h>
 
-class BinPoseEmulator : public ActionServerInterface
-{
+class BinPoseEmulator : public ActionServerInterface {
 public:
-  BinPoseEmulator(ros::NodeHandle &nh);
+  BinPoseEmulator(ros::NodeHandle& nh);
   ~BinPoseEmulator();
 
   bool callback(bin_pose_msgs::bin_pose::Request& req,

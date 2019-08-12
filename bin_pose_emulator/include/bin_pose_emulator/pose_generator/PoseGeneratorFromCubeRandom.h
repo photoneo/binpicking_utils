@@ -9,8 +9,8 @@
 
 class PoseGeneratorFromCubeRandom : public PoseGeneratorFromCube {
 public:
-    PoseGeneratorFromCubeRandom(ros::NodeHandle &nh);
-    virtual bool generate(geometry_msgs::Pose &pose) override;
+    PoseGeneratorFromCubeRandom(ros::NodeHandle& nh);
+    virtual bool generate(geometry_msgs::Pose& pose) override;
     virtual long getNumberOfPoints() override;
 
 protected:

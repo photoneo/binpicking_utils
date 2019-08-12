@@ -8,29 +8,27 @@
 #include <tf/transform_datatypes.h>
 
 PoseGeneratorBase::PoseGeneratorBase(ros::NodeHandle &nh){
-    marker_pub_ = nh.advertise<visualization_msgs::Marker>("bin_pose_visualization", 1);
+    markerPub = nh.advertise<visualization_msgs::Marker>("bin_pose_visualization", 1);
 }
 
-bool PoseGeneratorBase::getPose(geometry_msgs::Pose &pose, double approach_distance){
+bool PoseGeneratorBase::getPose(geometry_msgs::Pose& pose, double approachDistance) {
 
     visualizeBin();
     generate(pose);
-    visualizePose(pose, approach_distance);
+    visualizePose(pose, approachDistance);
 }
 
-tf::Transform PoseGeneratorBase::broadcastPoseTF(const geometry_msgs::Pose &grasp_pose)
-{
+tf::Transform PoseGeneratorBase::broadcastPoseTF(const geometry_msgs::Pose &graspPose) {
     tf::Transform transform;
 
-    tf::poseMsgToTF(grasp_pose, transform);
-    broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(),
+    tf::poseMsgToTF(graspPose, transform);
+    broadcaster.sendTransform(tf::StampedTransform(transform, ros::Time::now(),
                                           "base_link", "current_goal"));
     return transform;
 }
 
-void PoseGeneratorBase::visualizePose(geometry_msgs::Pose grasp_pose, double arrow_distance, bool multiArray)
-{
-    broadcastPoseTF(grasp_pose);
+void PoseGeneratorBase::visualizePose(const geometry_msgs::Pose& graspPose, double arrowDistance, bool multiArray) {
+    broadcastPoseTF(graspPose);
 
     uint32_t shape = visualization_msgs::Marker::ARROW;
     visualization_msgs::Marker marker;
@@ -49,18 +47,18 @@ void PoseGeneratorBase::visualizePose(geometry_msgs::Pose grasp_pose, double arr
     marker.type = shape;
     marker.action = visualization_msgs::Marker::ADD;
 
-    geometry_msgs::Point approach_point;
-    tf::Quaternion quat(grasp_pose.orientation.x, grasp_pose.orientation.y,grasp_pose.orientation.z, grasp_pose.orientation.w);
+    geometry_msgs::Point approachPoint;
+    tf::Quaternion quat(graspPose.orientation.x, graspPose.orientation.y,graspPose.orientation.z, graspPose.orientation.w);
 
     tf::Vector3 vector(0, 0, 1);
-    tf::Vector3 rotated_vector = tf::quatRotate(quat, vector);
+    tf::Vector3 rotatedVector = tf::quatRotate(quat, vector);
 
-    approach_point.x = grasp_pose.position.x - arrow_distance * rotated_vector.getX();
-    approach_point.y = grasp_pose.position.y - arrow_distance * rotated_vector.getY();
-    approach_point.z = grasp_pose.position.z - arrow_distance * rotated_vector.getZ();
+    approachPoint.x = graspPose.position.x - arrowDistance * rotatedVector.getX();
+    approachPoint.y = graspPose.position.y - arrowDistance * rotatedVector.getY();
+    approachPoint.z = graspPose.position.z - arrowDistance * rotatedVector.getZ();
 
-    marker.points.push_back(approach_point);
-    marker.points.push_back(grasp_pose.position);
+    marker.points.push_back(approachPoint);
+    marker.points.push_back(graspPose.position);
 
     marker.scale.x = 0.01;
     marker.scale.y = 0.02;
@@ -72,10 +70,10 @@ void PoseGeneratorBase::visualizePose(geometry_msgs::Pose grasp_pose, double arr
     marker.color.a = 1.0;
 
     marker.lifetime = ros::Duration();
-    marker_pub_.publish(marker);
+    markerPub.publish(marker);
 }
 
-sensor_msgs::PointCloud2 PoseGeneratorBase::getPointCloud2(){
+sensor_msgs::PointCloud2 PoseGeneratorBase::getPointCloud2() {
     sensor_msgs::PointCloud2 pc2;
     return pc2;
 }

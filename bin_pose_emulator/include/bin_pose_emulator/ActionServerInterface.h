@@ -14,20 +14,20 @@
 
 #include "bin_pose_emulator/pose_generator/PoseGeneratorBase.h"
 
-class ActionServerInterface{
+class ActionServerInterface {
 
 public:
-    ActionServerInterface(ros::NodeHandle &nh);
+    ActionServerInterface(ros::NodeHandle& nh);
 
     void actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal);
 protected:
-    std::shared_ptr<PoseGeneratorBase> pose_generator_;
+    std::shared_ptr<PoseGeneratorBase> poseGenerator;
 
 private:
 
-    std::shared_ptr<actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction> > as_;
+    std::shared_ptr<actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction> > as;
     ros::Publisher statusPublisher;
-    ros::NodeHandle nh_;
+    ros::NodeHandle nh;
 
     void publishEmptyCloud(int frameId);
     void acquisitionComplete(int frameId);

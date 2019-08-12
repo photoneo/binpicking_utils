@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
  *********************************************************************/
 
-#include "bin_pose_emulator/bin_pose_emulator.h"
+#include "bin_pose_emulator/BinPoseEmulator.h"
 
-int main(int argc, char* argv[])
-{
+int main(int argc, char* argv[]) {
   ros::init(argc, argv, "bin_pose_emulator");
 
   // Create emulator object
