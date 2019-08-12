@@ -13,6 +13,7 @@
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromPointCloudRandom.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromCube.h>
 #include <bin_pose_emulator/pose_generator/PoseGeneratorFromCubeRandom.h>
+#include <bin_pose_emulator/pose_generator/SinglePoseGenerator.h>
 #include <bin_pose_emulator/Utils.h>
 
 ActionServerInterface::ActionServerInterface(ros::NodeHandle& nh) :
@@ -36,12 +37,10 @@ nh(nh)
             poseGenerator = std::make_shared<PoseGeneratorFromPointCloudRandom>(nh);
             break;
         case PoseGeneratorBase::SINGLE_POSE:
-            //poseGenerator = std::make_shared<PoseGeneratorFromPointCloud>(nh);
-           // break;
-
-           default:
-
-                break;
+            poseGenerator = std::make_shared<SinglePoseGenerator>(nh);
+            break;
+         default:
+             break;
     }
 
     poseGenerator->parseConfig(nh);
