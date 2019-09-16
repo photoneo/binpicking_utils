@@ -9,17 +9,20 @@
 
 int main(int argc, char **argv) {
     std::string cmd;
+    std::string robotPath;
     std::string robot;
 
     if (argc == 2) {
         std::cout << "Robot: " << argv[1] << std::endl;
+        robot = argv[1];
     } else {
         std::cout << "Please enter robot name as the first argument." << std::endl;
         return 1;
     }
-    robot = argv[1];
+    
+    robotPath = "/home/controller/catkin_ws/src/" + robot + "_support";
 
-    cmd = "cd ~/catkin_ws/src/" + robot + "/" + robot + "_support/urdf && ";
+    cmd = "cd " + robotPath + "/urdf && ";
     cmd += "rosrun xacro xacro --inorder -o robot.urdf robot.xacro";
     std::cout << cmd << std::endl;
     if (system(cmd.c_str())) {
@@ -27,8 +30,8 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    UrdfStdFormatConverter urdfConverter(
-            "/home/controller/catkin_ws/src/" + robot + "/" + robot + "_support/urdf/robot.urdf");
+    UrdfStdFormatConverter urdfConverter(robotPath + "/urdf/robot.urdf");
+
     if (urdfConverter.existLinkOffsets() == 1) {
         std::cout << "URDF model has some offsets of the links. Conversion is not prepared for it." << std::endl;
         return 4;
@@ -45,8 +48,7 @@ int main(int argc, char **argv) {
 
     urdfConverter.calculateNewUrdfValues();
 
-    urdfConverter.modifyXacroXmlFile("/home/controller/catkin_ws/src/" + robot + "/" + robot + \
-            "_support/urdf/robot_macro.xacro");
+    urdfConverter.modifyXacroXmlFile(robotPath + "/urdf/robot_macro.xacro");
 
     std::cout << "Robot URDF model conversion was successful." << std::endl;
     return 0;
