@@ -171,9 +171,9 @@ int UrdfStdFormatConverter::modifyXacroXmlFile(std::string xacroFilePath) {
             auto jE = jointElements[i];
             std::cout << jE->FirstAttribute()->ValueStr() << std::endl;
 
-            std::string axisString = std::to_string((int) newJointAxes[i][0]) + " ";
-            axisString += std::to_string((int) newJointAxes[i][1]) + " ";
-            axisString += std::to_string((int) newJointAxes[i][2]);
+            std::string axisString = std::to_string(newJointAxes[i][0]) + " ";
+            axisString += std::to_string(newJointAxes[i][1]) + " ";
+            axisString += std::to_string(newJointAxes[i][2]);
 
             TiXmlElement originElement("origin");
             originElement.SetAttribute("xyz", xyzVector3toString(newJointOffsets[i]));

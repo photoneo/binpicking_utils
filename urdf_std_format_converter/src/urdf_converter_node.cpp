@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
         std::cout << "Please enter robot name as the first argument." << std::endl;
         return 1;
     }
-    
+
     robotPath = "/home/controller/catkin_ws/src/" + robot + "_support";
 
     cmd = "cd " + robotPath + "/urdf && ";
