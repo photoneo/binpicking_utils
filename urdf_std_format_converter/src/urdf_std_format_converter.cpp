@@ -186,7 +186,7 @@ int UrdfStdFormatConverter::modifyXacroXmlFile(std::string xacroFilePath) {
             jE->ReplaceChild(jE->FirstChild("axis"), axisElement);
         }
 
-        xacroXML.SaveFile(xacroFilePath + ".xacro");
+        xacroXML.SaveFile(xacroFilePath + ".modified");
 
     } else {
         std::cout << "XML file open failed." << std::endl;
