@@ -24,6 +24,9 @@ public:
     int modifyXacroXmlFile(std::string xacroFilePath);
     int isConversionNeeded();
     int existLinkOffsets();
+    std::string rpyVector3toString(Eigen::Vector3d vec);
+    std::string xyzVector3toString(Eigen::Vector3d vec);
+    std::string axisVector3toString(Eigen::Vector3d vec);
 
 private:
     urdf::Model robotModel;
@@ -36,11 +39,8 @@ private:
     std::vector<Eigen::Vector3d> newJointOffsets;
     std::vector<Eigen::Vector3d> newJointAxes;
     std::vector<Eigen::Vector3d> newLinkRPYs;
-    TiXmlDocument xacroXML;
     void createChildJoints();
     void createChildLinks();
-    std::string rpyVector3toString(Eigen::Vector3d vec);
-    std::string xyzVector3toString(Eigen::Vector3d vec);
 };
 
 

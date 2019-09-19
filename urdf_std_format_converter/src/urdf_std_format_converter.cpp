@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <unistd.h>
 #include <Eigen/Dense>
@@ -98,7 +99,7 @@ void UrdfStdFormatConverter::calculateNewUrdfValues() {
             double absval = std::abs(newJointAxes[i](j));
             if (absval < ROUND_EPS) {
                 newJointAxes[i](j) = std::abs(std::round(newJointAxes[i](j)));
-            } else if(std::abs(absval - 1) < ROUND_EPS) {
+            } else if (std::abs(absval - 1) < ROUND_EPS) {
                 newJointAxes[i](j) = std::round(newJointAxes[i](j));
             }
         }
@@ -117,7 +118,19 @@ void UrdfStdFormatConverter::calculateNewUrdfValues() {
 }
 
 int UrdfStdFormatConverter::modifyXacroXmlFile(std::string xacroFilePath) {
-    xacroXML = TiXmlDocument(xacroFilePath);
+    std::ifstream inputFile;
+    std::ofstream outputFile;
+    inputFile.open(xacroFilePath);
+    outputFile.open(xacroFilePath + ".old");
+
+    char c;
+    while (inputFile.get(c)) {
+        outputFile << c;
+    }
+    inputFile.close();
+    outputFile.close();
+
+    TiXmlDocument xacroXML = TiXmlDocument(xacroFilePath);
 
     if (xacroXML.LoadFile()) {
         TiXmlElement *xacroNode = xacroXML.FirstChild("robot")->FirstChild("xacro:macro")->ToElement();
@@ -171,22 +184,18 @@ int UrdfStdFormatConverter::modifyXacroXmlFile(std::string xacroFilePath) {
             auto jE = jointElements[i];
             std::cout << jE->FirstAttribute()->ValueStr() << std::endl;
 
-            std::string axisString = std::to_string(newJointAxes[i][0]) + " ";
-            axisString += std::to_string(newJointAxes[i][1]) + " ";
-            axisString += std::to_string(newJointAxes[i][2]);
-
             TiXmlElement originElement("origin");
             originElement.SetAttribute("xyz", xyzVector3toString(newJointOffsets[i]));
             originElement.SetAttribute("rpy", rpyVector3toString(newJointRPYs[i]));
 
             TiXmlElement axisElement("axis");
-            axisElement.SetAttribute("xyz",  axisString);
+            axisElement.SetAttribute("xyz", axisVector3toString(newJointAxes[i]));
 
             jE->ReplaceChild(jE->FirstChild("origin"), originElement);
             jE->ReplaceChild(jE->FirstChild("axis"), axisElement);
         }
 
-        xacroXML.SaveFile(xacroFilePath + ".modified");
+        xacroXML.SaveFile(xacroFilePath);
 
     } else {
         std::cout << "XML file open failed." << std::endl;
@@ -197,7 +206,8 @@ int UrdfStdFormatConverter::modifyXacroXmlFile(std::string xacroFilePath) {
 }
 
 std::string UrdfStdFormatConverter::rpyVector3toString(Eigen::Vector3d vec) {
-    std::string output = "";
+    std::string output;
+    output = "";
     for (int i = 2; i >= 0; i--) {
         if (std::abs(vec[i]) < ROUND_EPS) {
             output += std::to_string((int) std::abs(std::round(vec[i])));
@@ -212,7 +222,8 @@ std::string UrdfStdFormatConverter::rpyVector3toString(Eigen::Vector3d vec) {
 }
 
 std::string UrdfStdFormatConverter::xyzVector3toString(Eigen::Vector3d vec) {
-    std::string output = "";
+    std::string output;
+    output = "";
     for (int i = 0; i <= 2; i++) {
         if (std::abs(vec[i]) < ROUND_EPS) {
             output += std::to_string((int) std::abs(std::round(vec[i])));
@@ -225,6 +236,24 @@ std::string UrdfStdFormatConverter::xyzVector3toString(Eigen::Vector3d vec) {
     }
     return output;
 }
+
+std::string UrdfStdFormatConverter::axisVector3toString(Eigen::Vector3d vec) {
+    std::string output;
+    output = "";
+    for (int i = 0; i <= 2; i++) {
+        double absVal = std::abs(vec[i]);
+        if ((absVal < ROUND_EPS) || (std::abs(absVal - 1) < ROUND_EPS)) {
+            output += std::to_string((int) std::round(vec[i]));
+        } else {
+            output += std::to_string(vec[i]);
+        }
+        if (i < 2) {
+            output += " ";
+        }
+    }
+    return output;
+}
+
 
 int UrdfStdFormatConverter::isConversionNeeded() {
     for (const auto &joint : joints) {
@@ -253,7 +282,7 @@ int UrdfStdFormatConverter::existLinkOffsets() {
         sum = std::abs(link->visual->origin.position.x);
         sum += std::abs(link->visual->origin.position.y);
         sum += std::abs(link->visual->origin.position.z);
-        if(sum > ROUND_EPS) {
+        if (sum > ROUND_EPS) {
             return 1;
         }
     }
