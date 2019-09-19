@@ -29,6 +29,9 @@ limitations under the License.
 #include <photoneo_msgs/initialize_pose.h>
 #include <photoneo_msgs/add_point.h>
 #include <photoneo_msgs/trigger_with_id.h>
+#include <photoneo_msgs/advanced_trigger.h>
+#include <photoneo_msgs/object_pose.h>
+#include <photoneo_msgs/calibration_start.h>
 #include <pho_robot_loader/constants.h>
 
 // MoveIt!
@@ -51,9 +54,12 @@ public:
   bool calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res);
   bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
-  bool calibrationStartCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
+  bool calibrationStartCallback(photoneo_msgs::calibration_start::Request& req, photoneo_msgs::calibration_start::Response& res);
   bool binPickingPickFailedCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
   bool changeSolutionCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
+  bool advancedTriggerCallback(photoneo_msgs::advanced_trigger::Request& req, photoneo_msgs::advanced_trigger::Response& res);
+  bool advancedLocalizeCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
+  bool objectPoseCallback(photoneo_msgs::object_pose::Request& req, photoneo_msgs::object_pose::Response& res);
 
 private:
   // Variables
