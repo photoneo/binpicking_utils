@@ -412,9 +412,10 @@ bool BinpickingEmulator::calibrationAddPointCallback(photoneo_msgs::add_point::R
   return true;
 }
 
-bool BinpickingEmulator::calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
+bool BinpickingEmulator::calibrationSetMatrixCallback(photoneo_msgs::calibration::Request &req,
+                                                      photoneo_msgs::calibration::Response &res)
 {
-  ROS_INFO("BIN PICKING EMULATOR: Calibration Set To Scanner Service called");
+  ROS_INFO("BIN PICKING EMULATOR: Set Calibration Matrix called");
   ros::Duration(2).sleep();   // Simulating delay
 
   res.success = true;
@@ -430,10 +431,10 @@ bool BinpickingEmulator::calibrationResetCallback(std_srvs::Trigger::Request& re
   return true;
 }
 
-bool BinpickingEmulator::calibrationStartCallback(photoneo_msgs::calibration_start::Request& req, photoneo_msgs::calibration_start::Response& res)
+bool BinpickingEmulator::calibrationStartCallback(photoneo_msgs::calibration::Request& req, photoneo_msgs::calibration::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Start Service called");
-  ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d, Scan ID %d", req.vision_system_id, req.solution_id);
+  ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d, Solution ID %d", req.vision_system_id, req.solution_id);
   ros::Duration(2).sleep();   // Simulating delay
 
   res.success = true;
@@ -485,6 +486,13 @@ bool BinpickingEmulator::objectPoseCallback(photoneo_msgs::object_pose::Request&
   ros::Duration(5).sleep();
 
   res.success = true;
+  res.pose.position.x = 1.023;
+  res.pose.position.y = 2.134;
+  res.pose.position.z = 3.245;
+  res.pose.orientation.x = 0.956;
+  res.pose.orientation.y = 0.523;
+  res.pose.orientation.z = 0.324;
+  res.pose.orientation.w = 0.743;
   return true;
 }
 
@@ -569,7 +577,8 @@ int main(int argc, char** argv)
   ros::ServiceServer calibration_add_point_service =
       nh.advertiseService(CALIBRATION_SERVICES::ADD_POINT, &BinpickingEmulator::calibrationAddPointCallback, &emulator);
   ros::ServiceServer calibration_set_to_scanner_service =
-      nh.advertiseService(CALIBRATION_SERVICES::SET_CALIBRATION_MATRIX, &BinpickingEmulator::calibrationSetToScannerCallback, &emulator);
+      nh.advertiseService(CALIBRATION_SERVICES::SET_CALIBRATION_MATRIX,
+                          &BinpickingEmulator::calibrationSetMatrixCallback, &emulator);
   ros::ServiceServer calibration_reset_service =
       nh.advertiseService(CALIBRATION_SERVICES::RESET, &BinpickingEmulator::calibrationResetCallback, &emulator);
   ros::ServiceServer calibration_start_service =
