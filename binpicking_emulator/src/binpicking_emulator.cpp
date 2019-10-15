@@ -422,7 +422,7 @@ bool BinpickingEmulator::calibrationSetMatrixCallback(photoneo_msgs::calibration
   return true;
 }
 
-bool BinpickingEmulator::calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
+bool BinpickingEmulator::calibrationFinishCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Calibration Reset Service called");
   ros::Duration(2).sleep();   // Simulating delay
@@ -484,15 +484,17 @@ bool BinpickingEmulator::objectPoseCallback(photoneo_msgs::object_pose::Request&
   ROS_INFO("BIN PICKING EMULATOR: Object Pose Service called");
   ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d", req.vision_system_id);
   ros::Duration(5).sleep();
+    bin_pose_msgs::bin_pose srv;
 
-  res.success = true;
-  res.pose.position.x = 1.023;
-  res.pose.position.y = 2.134;
-  res.pose.position.z = 3.245;
-  res.pose.orientation.x = 0.956;
-  res.pose.orientation.y = 0.523;
-  res.pose.orientation.z = 0.324;
-  res.pose.orientation.w = 0.743;
+    if (bin_pose_client_.call(srv))
+    {
+        res.pose = srv.response.grasp_pose;
+        res.success = true;
+    } else {
+        res.result = ERROR::TYPE::NO_PART_FOUND;
+        res.success = false;
+    }
+
   return true;
 }
 
@@ -580,7 +582,7 @@ int main(int argc, char** argv)
       nh.advertiseService(CALIBRATION_SERVICES::SET_CALIBRATION_MATRIX,
                           &BinpickingEmulator::calibrationSetMatrixCallback, &emulator);
   ros::ServiceServer calibration_reset_service =
-      nh.advertiseService(CALIBRATION_SERVICES::RESET, &BinpickingEmulator::calibrationResetCallback, &emulator);
+      nh.advertiseService(CALIBRATION_SERVICES::FINISH, &BinpickingEmulator::calibrationFinishCallback, &emulator);
   ros::ServiceServer calibration_start_service =
       nh.advertiseService(CALIBRATION_SERVICES::START, &BinpickingEmulator::calibrationStartCallback, &emulator);
   ros::ServiceServer bin_picking_pick_failed_service =

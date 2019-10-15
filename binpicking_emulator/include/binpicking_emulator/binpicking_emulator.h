@@ -53,7 +53,7 @@ public:
   bool binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
   bool calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res);
   bool calibrationSetMatrixCallback(photoneo_msgs::calibration::Request &req, photoneo_msgs::calibration::Response &res);
-  bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
+  bool calibrationFinishCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
   bool calibrationStartCallback(photoneo_msgs::calibration::Request& req, photoneo_msgs::calibration::Response& res);
   bool binPickingPickFailedCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
   bool changeSolutionCallback(photoneo_msgs::trigger_with_id::Request& req, photoneo_msgs::trigger_with_id::Response& res);
