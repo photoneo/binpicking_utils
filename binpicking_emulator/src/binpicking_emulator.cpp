@@ -416,6 +416,7 @@ bool BinpickingEmulator::calibrationSetMatrixCallback(photoneo_msgs::calibration
                                                       photoneo_msgs::calibration::Response &res)
 {
   ROS_INFO("BIN PICKING EMULATOR: Set Calibration Matrix called");
+  ROS_INFO("BIN PICKING EMULATOR:  Vision system ID %d, Solution ID %d", req.vision_system_id, req.solution_id);
   ros::Duration(2).sleep();   // Simulating delay
 
   res.success = true;
@@ -424,7 +425,7 @@ bool BinpickingEmulator::calibrationSetMatrixCallback(photoneo_msgs::calibration
 
 bool BinpickingEmulator::calibrationFinishCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res)
 {
-  ROS_INFO("BIN PICKING EMULATOR: Calibration Reset Service called");
+  ROS_INFO("BIN PICKING EMULATOR: Calibration Finish Service called");
   ros::Duration(2).sleep();   // Simulating delay
 
   res.success = true;
