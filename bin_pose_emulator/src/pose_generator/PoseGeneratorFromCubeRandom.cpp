@@ -15,13 +15,9 @@ bool PoseGeneratorFromCubeRandom::generate(geometry_msgs::Pose& pose) {
     pose.position.y = randGen( - config.binSizeY / 2, config.binSizeY / 2);
     pose.position.z = randGen( - config.binSizeZ / 2, config.binSizeZ / 2);
 
-    double roll = randGen(config.rollDefault - config.rollRange / 2,
-                                config.rollDefault + config.rollRange / 2);
-    double pitch = randGen(config.pitchDefault - config.pitchRange / 2,
-                                 config.pitchDefault + config.pitchRange / 2);
-    double yaw = randGen(config.yawDefault - config.yawRange / 2,
-                               config.yawDefault + config.yawRange / 2);
-
+    double roll = randGen(config.rollMin, config.rollMax);
+    double pitch = randGen(config.pitchMin, config.pitchMax);
+    double yaw = randGen(config.yawMin, config.yawMax);
 
     tf::Quaternion graspOrientation;
     graspOrientation.setRPY(roll, pitch, yaw);

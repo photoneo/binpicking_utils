@@ -20,40 +20,40 @@ bool PoseGeneratorFromCube::generate(geometry_msgs::Pose& pose){
     static double y =  -config.binSizeY / 2;
     static double z =  -config.binSizeZ / 2;
 
-    static double roll = config.rollDefault -config.rollRange / 2;
-    static double pitch = config.pitchDefault -config.pitchRange / 2;
-    static double yaw = config.yawDefault -config.yawRange / 2;
+    static double roll = config.rollMin;
+    static double pitch = config.pitchMin;
+    static double yaw = config.yawMin;
 
     yaw += config.stepYaw;
-    if (yaw >= config.yawDefault + config.yawRange / 2){
-        yaw = config.yawDefault - config.yawRange / 2;
+    if (yaw > config.yawMax){
+        yaw = config.yawMin;
         pitch += config.stepPitch;
 
-        if (pitch >= config.pitchDefault + config.pitchRange / 2) {
-            pitch = config.pitchDefault - config.pitchRange / 2;
+        if (pitch > config.pitchMax) {
+            pitch = config.pitchMin;
             roll += config.stepRoll;
 
-            if (roll >= config.rollDefault + config.rollRange / 2) {
-                roll = config.rollDefault - config.rollRange / 2;
+            if (roll > config.rollMax) {
+                roll = config.rollMin;
                 x += config.stepX;
 
-                if (x >= config.binSizeX / 2) {
+                if (x > config.binSizeX / 2) {
                     x = -config.binSizeX / 2;
                     y += config.stepY;
 
-                    if (y >= config.binSizeY / 2) {
+                    if (y > config.binSizeY / 2) {
                         y = -config.binSizeY / 2;
                         z += config.stepZ;
 
-                        if (z >= config.binSizeZ / 2) {
+                        if (z > config.binSizeZ / 2) {
 
                             x = -config.binSizeX / 2;
                             y = -config.binSizeY / 2;
                             z = -config.binSizeZ / 2;
 
-                            roll = config.rollDefault -config.rollRange / 2;
-                            pitch = config.pitchDefault -config.pitchRange / 2;
-                            yaw = config.yawDefault -config.yawRange / 2;
+                            roll = config.rollMin;
+                            pitch = config.pitchMin;
+                            yaw = config.yawMin;
                             return false;
                         }
                     }
@@ -79,13 +79,17 @@ bool PoseGeneratorFromCube::generate(geometry_msgs::Pose& pose){
 
 long PoseGeneratorFromCube::getNumberOfPoints(){
 
-    long count = (long)(config.binSizeX / config.stepX);
-    count *=  (long)(config.binSizeY / config.stepY);
-    count *=  (long)(config.binSizeZ / config.stepZ);
-    count *=  (long)(config.pitchRange / config.stepPitch);
-    count *=  (long)(config.rollRange / config.stepRoll);
-    count *=  (long)(config.yawRange / config.stepYaw);
+    double rollRange = config.rollMax - config.rollMin;
+    double pitchRange = config.pitchMax - config.pitchMin;
+    double yawRange = config.yawMax - config.yawMin;
 
+    long count = ((long)(config.binSizeX / config.stepX) + 1);
+    count *=  ((long)(config.binSizeY / config.stepY) + 1);
+    count *=  ((long)(config.binSizeZ / config.stepZ) + 1);
+    count *=  ((long)(rollRange / config.stepRoll) + 1);
+    count *=  ((long)(pitchRange / config.stepPitch) + 1);
+    count *=  ((long)(yawRange / config.stepYaw) + 1);
+    
     return count;
 }
 
@@ -100,12 +104,14 @@ bool PoseGeneratorFromCube::parseConfig(ros::NodeHandle& nh) {
     GET_PARAM_REQUIRED(nh,"step_x",config.stepX);
     GET_PARAM_REQUIRED(nh,"step_y",config.stepY);
     GET_PARAM_REQUIRED(nh,"step_z",config.stepZ);
-    GET_PARAM_REQUIRED(nh,"roll_default",config.rollDefault);
-    GET_PARAM_REQUIRED(nh,"pitch_default",config.pitchDefault);
-    GET_PARAM_REQUIRED(nh,"yaw_default",config.yawDefault);
-    GET_PARAM_REQUIRED(nh,"roll_range",config.rollRange);
-    GET_PARAM_REQUIRED(nh,"pitch_range",config.pitchRange);
-    GET_PARAM_REQUIRED(nh,"yaw_range",config.yawRange);
+
+    GET_PARAM_REQUIRED(nh,"roll_min",config.rollMin);
+    GET_PARAM_REQUIRED(nh,"pitch_min",config.pitchMin);
+    GET_PARAM_REQUIRED(nh,"yaw_min",config.yawMin);
+    GET_PARAM_REQUIRED(nh,"roll_max",config.rollMax);
+    GET_PARAM_REQUIRED(nh,"pitch_max",config.pitchMax);
+    GET_PARAM_REQUIRED(nh,"yaw_max",config.yawMax);
+
     GET_PARAM_REQUIRED(nh,"step_roll",config.stepRoll);
     GET_PARAM_REQUIRED(nh,"step_pitch",config.stepPitch);
     GET_PARAM_REQUIRED(nh,"step_yaw",config.stepYaw);

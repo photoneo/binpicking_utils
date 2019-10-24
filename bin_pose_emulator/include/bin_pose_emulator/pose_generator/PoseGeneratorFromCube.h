@@ -25,15 +25,12 @@ public:
         double yRotation;
         double zRotation;
 
-        // Default tool point orientation
-        double rollDefault;
-        double pitchDefault;
-        double yawDefault;
-
-        // Allowed orientation range
-        double rollRange;
-        double pitchRange;
-        double yawRange;
+        double rollMin;
+        double rollMax;
+        double pitchMin;
+        double pitchMax;
+        double yawMin;
+        double yawMax;
 
         double stepX;
         double stepY;

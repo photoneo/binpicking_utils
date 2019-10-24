@@ -16,12 +16,9 @@ bool PoseGeneratorFromPointCloudRandom::generate(geometry_msgs::Pose& pose) {
     pose.position.y = space->points[index].y;
     pose.position.z = space->points[index].z;
 
-    double roll = randGen(config.rollDefault - config.rollRange / 2,
-                                config.rollDefault + config.rollRange / 2);
-    double pitch = randGen(config.pitchDefault - config.pitchRange / 2,
-                                 config.pitchDefault + config.pitchRange / 2);
-    double yaw = randGen(config.yawDefault - config.yawRange / 2,
-                               config.yawDefault + config.yawRange / 2);
+    double roll = randGen(config.rollMin, config.rollMax);
+    double pitch = randGen(config.pitchMin, config.pitchMax);
+    double yaw = randGen(config.yawMin, config.yawMax);
 
     tf::Quaternion grasp_orientation;
     grasp_orientation.setRPY(roll, pitch, yaw);

@@ -10,17 +10,16 @@ x_rotation: 0.0
 y_rotation: 0.0
 z_rotation: 0.0
 
-roll_default: 0.0
-pitch_default: 3.14
-yaw_default: 0
+roll_min: -0.05
+roll_max: 0.05
+pitch_min: -0.05
+pitch_max: 0.05
+yaw_min: -0.05
+yaw_max: 0.05
 
-roll_range: 0.7
-pitch_range: 0.7
-yaw_range: 6.28
-
-step_roll: 0.3
-step_pitch: 0.3
-step_yaw: 1.2
+step_roll: 0.1
+step_pitch: 0.1
+step_yaw: 0.1
 
 mesh: "/home/controller/catkin_ws/src/pcl_binvox/data/object_1_shifted.ply"
 
