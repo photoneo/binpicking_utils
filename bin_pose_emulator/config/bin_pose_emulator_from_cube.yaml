@@ -1,0 +1,42 @@
+# BIN VOLUME TYPE
+# 0 Cube
+# 1 Cube Random
+# 2 Point Cloud
+# 3 Point Cloud Random
+# 4 Single Pose
+bin_volume_type: 0
+
+bin_center_x: 2.0
+bin_center_y: 0.0
+bin_center_z: 0.26
+
+bin_size_x: 2.0
+bin_size_y: 0.5
+bin_size_z: 0.5
+
+x_rotation: 0.0
+y_rotation: 0.0
+z_rotation: 0.0
+
+roll_min: -3.14
+roll_max: 3.14
+pitch_min: -3.14
+pitch_max: 3.14
+yaw_min: -3.14
+yaw_max: 3.14
+
+roll_range: 1.0
+pitch_range: 1.0
+yaw_range: 6.14
+
+step_x: 0.1
+step_y: 0.1
+step_z: 0.1
+
+step_x: 0.2
+step_y: 0.2
+step_z: 0.3
+
+step_roll: 1.0
+step_pitch: 1.0
+step_yaw: 2.3

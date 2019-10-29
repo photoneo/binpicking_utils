@@ -1,3 +1,5 @@
+float64 approach_distance
+float64 deaproach_height
 ---
 geometry_msgs/Pose grasp_pose
 geometry_msgs/Pose approach_pose

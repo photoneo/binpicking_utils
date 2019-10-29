@@ -14,31 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
  *********************************************************************/
 
-#include "bin_pose_emulator/bin_pose_emulator.h"
-#include "bin_pose_emulator/ActionServerInterface.h"
+#ifndef BIN_POSE_EMULATOR_H
+#define BIN_POSE_EMULATOR_H
 
-//#define RANDOM_BIN_POSE
+#include <bin_pose_emulator/ActionServerInterface.h>
+#include <bin_pose_msgs/bin_pose.h>
 
+class BinPoseEmulator : public ActionServerInterface {
+public:
+  BinPoseEmulator(ros::NodeHandle& nh);
+  ~BinPoseEmulator();
 
-int main(int argc, char* argv[])
-{
-  ros::init(argc, argv, "bin_pose_emulator");
-  ros::NodeHandle nh;
+  bool callback(bin_pose_msgs::bin_pose::Request& req,
+                bin_pose_msgs::bin_pose::Response& res);
 
-  // Get config filepath from ROS Param server
-  std::string filepath;
-  nh.getParam("filepath", filepath);
+protected:
 
-  // Create emulator object
-  BinPoseEmulator emulator(&nh, filepath);
+private:
+    ros::ServiceServer service;
+};
 
-  ActionServerInterface actionServer(std::make_shared<BinPoseEmulator>(emulator));
-  // Advertise service
-  ros::ServiceServer service =
-      nh.advertiseService("bin_pose", &BinPoseEmulator::callback, &emulator);
-
-  ROS_WARN("creating service");
-  ros::spin();
-
-  return EXIT_SUCCESS;
-}
+#endif // BIN_POSE_EMULATOR_H

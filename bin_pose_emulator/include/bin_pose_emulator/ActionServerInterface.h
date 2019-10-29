@@ -12,24 +12,25 @@
 //action
 #include <pho_localization/ScanAndLocateAction.h>
 
-#include "bin_pose_emulator/bin_pose_emulator.h"
+#include "bin_pose_emulator/pose_generator/PoseGeneratorBase.h"
 
-class ActionServerInterface{
+class ActionServerInterface {
 
 public:
-    ActionServerInterface( std::shared_ptr<BinPoseEmulator> emulator);
+    ActionServerInterface(ros::NodeHandle& nh);
 
     void actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal);
+protected:
+    std::shared_ptr<PoseGeneratorBase> poseGenerator;
 
 private:
 
-    std::shared_ptr<actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction> > as_;
-    ros::Publisher cloud_publisher_;
-    ros::NodeHandle nh_;
+    std::shared_ptr<actionlib::SimpleActionServer<pho_localization::ScanAndLocateAction> > as;
+    ros::Publisher statusPublisher;
+    ros::NodeHandle nh;
 
-    std::shared_ptr<BinPoseEmulator> emulator_;
-
-    void publishEmptyCloud(uint32_t header_seq);
+    void publishEmptyCloud(int frameId);
+    void acquisitionComplete(int frameId);
 };
 
 #endif //PROJECT_ACTIONSERVER_H
