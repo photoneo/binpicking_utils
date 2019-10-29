@@ -25,13 +25,13 @@ pitch_max: 3.14
 yaw_min: -3.14
 yaw_max: 3.14
 
-#roll_default: 0.0
-#pitch_default: 3.14
-#yaw_default: 0
+roll_range: 1.0
+pitch_range: 1.0
+yaw_range: 6.14
 
-#roll_range: 1.0
-#pitch_range: 1.0
-#yaw_range: 6.14
+step_x: 0.1
+step_y: 0.1
+step_z: 0.1
 
 step_x: 0.2
 step_y: 0.2
