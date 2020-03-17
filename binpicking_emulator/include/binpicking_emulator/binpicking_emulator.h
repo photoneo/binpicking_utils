@@ -26,12 +26,6 @@ limitations under the License.
 #include <bin_pose_msgs/bin_pose.h>
 #include <bin_pose_msgs/bin_pose_vector.h>
 
-#include <photoneo_msgs/operations.h>
-#include <photoneo_msgs/operation.h>
-#include <photoneo_msgs/initialize_pose.h>
-#include <photoneo_msgs/add_point.h>
-#include <pho_robot_loader/constants.h>
-
 #include <iostream>
 #include <fstream>
 
@@ -43,102 +37,37 @@ limitations under the License.
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
-#include <stomp_param_changer/statistics.h>
 
-#include "binpicking_emulator/path_length_test.h"
 #include "binpicking_emulator/kinematic.h"
-#include "binpicking_emulator/MoveGroupOwn.h"
-#include <mutex>
 
 #define THREADS_COUNT 6
 class BinpickingEmulator
 {
 public:
-    struct Waypoint{
-        bool is_linear;
-        bool is_joint_space;
-        geometry_msgs::Pose pose;
-        std::vector<double> joint_state;
-    };
 
-  BinpickingEmulator(ros::NodeHandle* nh);
+  typedef std::vector<double> JointValues;
+
+  BinpickingEmulator(ros::NodeHandle& nh);
   ~BinpickingEmulator();
+  void setStartState(const JointValues &start_state);
+   bool moveJ(const geometry_msgs::Pose &pose);
+   bool moveJ(const JointValues &joint_pose);
+
+/*
   void binPickingThreadsLoops();
-  bool binPickingScanCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
-  bool binPickingTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
-  bool binPickingScanAndTrajCallback(photoneo_msgs::operations::Request& req, photoneo_msgs::operations::Response& res);
-  bool binPickingInitCallback(photoneo_msgs::initialize_pose::Request& req, photoneo_msgs::initialize_pose::Response& res);
-  bool calibrationAddPointCallback(photoneo_msgs::add_point::Request& req, photoneo_msgs::add_point::Response& res);
-  bool calibrationSetToScannerCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
-  bool calibrationResetCallback(std_srvs::Trigger::Request& req, std_srvs::Trigger::Response& res);
-    void binPickingLoopSimpleTraj();
+   void binPickingLoopSimpleTraj();
     void binPickingLoop(int id=0);
     bool makePlan(const geometry_msgs::Pose &pose, bool isLinear = false);
     bool isIKSolutionValid(const planning_scene::PlanningScene* planning_scene,
                            robot_state::RobotState* state,
                            const robot_model::JointModelGroup* jmg,
                            const double* ik_solution);
-
+*/
 private:
-  // Variables
-  ros::Publisher trajectory_pub_;
-  ros::ServiceClient bin_pose_client_;
+    static constexpr char* PLANNING_GROUP = "manipulator";
+    moveit::planning_interface::MoveGroupInterface move_group_;
+    Kinematic kinematic_;
 
-  robot_model_loader::RobotModelLoaderPtr robot_model_loader_;
-  moveit::planning_interface::MoveGroupInterfacePtr group_;
-    std::vector<MoveGroup*> groupOwn;
-    MoveGroup *groupTest;
-    planning_scene_monitor::PlanningSceneMonitorPtr planning_scene_monitor;
-    boost::shared_ptr<tf::TransformListener> tf;
-
-    void publishResult();
-    void writeToFile();
-    void createStatistics(moveit::planning_interface::MoveItErrorCode success, trajectory_msgs::JointTrajectory trajectory, double time, const geometry_msgs::Pose pose);
-
-    bool checkCartesianContinuity(trajectory_msgs::JointTrajectory &trajectory, float limit);
-
-    int num_of_joints_;
-  std::vector<double> start_pose_from_robot_;
-  std::vector<double> end_pose_from_robot_;
-
-  int trajectory_marker_index_;
-    const float rs[10]={1.0,0.0,0.0,1.0,1.0,0.0,1.0,0.0,0.5,0.0};
-    const float gs[10]={0.0,1.0,0.0,1.0,0.0,1.0,1.0,0.0,0.5,0.5};
-    const float bs[10]={0.0,0.0,1.0,0.0,1.0,1.0,1.0,0.0,0.0,1.0};
-  // Functions
-  void visualizeTrajectory(trajectory_msgs::JointTrajectory trajectory, int color=0);
-
-    std::ofstream outfile_fails_stomp_;
-    std::ofstream outfile_fails_ik_;
-    std::ofstream outfile_joint_diff_;
-    std::ofstream outfile_points_;
-
-
-    ros::Publisher statistics_pub_;
-
-    double average_time_;
-    int num_of_attempt_;
-    int num_of_success_;
-    int num_of_fails_;
-    double sum_time_;
-    double sum_joint_diff_;
-    double sum_traj_size_;
-    double average_joint_diff_;
-    double average_traj_size_;
-    int ik_fails_sum_;
-    double success_rate_;
-    int bad_trajectory_;
-
-    std::string log_path_;
-    PathLengthTest path_length_test_;
-
-    std::vector<int> ik_fails_;
-    std::vector<int> planner_fails_;
-    std::vector<int> continuity_checker_;
-    int point_id_;
-    geometry_msgs::Point last_point_;
-    std::mutex mutex_goals;
-    std::mutex mutex_file;
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H

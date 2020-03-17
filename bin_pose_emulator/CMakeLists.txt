@@ -8,7 +8,7 @@ find_package(catkin REQUIRED
     bin_pose_msgs
     tf
    sensor_msgs
-        pho_localization_msgs
+  #      pho_localization_msgs
         actionlib
         actionlib_msgs
         sensor_msgs

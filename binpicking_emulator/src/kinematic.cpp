@@ -20,7 +20,7 @@ bool Kinematic::getIK(const geometry_msgs::Pose &pose, std::vector<double> &join
 
     joint_values.clear();
     bool found_ik = kinematic_state->setFromIK(joint_model_group, pose, NUM_OF_ATTEMPTS, TIMEOUT, groupStateValidityCallbackFn);
-    ROS_WARN("kinematic getIK vysledok: %i",found_ik);
+    ROS_WARN("kinematic getIK vysledok: %d",found_ik);
     if (found_ik) kinematic_state->copyJointGroupPositions(joint_model_group, joint_values);
     return found_ik;
 }

@@ -4,8 +4,8 @@
     <!-- Bin pose emulator -->
     <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/>
 
-    <param name="filepath" value="$(find attached_part)/config/bin_pose_emulator.yaml"/>
+    <param name="filepath" value="$(find bin_pose_emulator)/config/bin_pose_emulator.yaml"/>
 
-    <rosparam command="load" file="$(find attached_part)/config/bin_pose_emulator.yaml"/>
+    <rosparam command="load" file="$(find bin_pose_emulator)/config/bin_pose_emulator.yaml"/>
 
 </launch>

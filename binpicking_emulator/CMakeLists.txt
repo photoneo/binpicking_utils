@@ -6,9 +6,6 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED
   COMPONENTS
     roscpp
-    photoneo_msgs
-    pho_robot_loader
-    pho_diagnostics
     bin_pose_msgs
     moveit_core
     moveit_ros_planning_interface
@@ -18,7 +15,7 @@ find_package(catkin REQUIRED
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp bin_pose_msgs photoneo_msgs pho_robot_loader moveit_core)
+  CATKIN_DEPENDS roscpp bin_pose_msgs moveit_core)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -28,7 +25,6 @@ add_executable(
   binpicking_emulator
   src/binpicking_emulator.cpp
   src/path_length_test.cpp
-        src/MoveGroupOwn.cpp
 src/kinematic.cpp)
 
 add_dependencies(binpicking_emulator ${catkin_EXPORTED_TARGETS})
