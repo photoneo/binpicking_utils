@@ -45,12 +45,14 @@
 
 #include <bin_pose_msgs/bin_pose_vector.h>
 #include <binpicking_emulator/binpicking_emulator.h>
-#include "../../../../devel/include/bin_pose_msgs/bin_pose_vector.h"
+
+#include <eigen_conversions/eigen_msg.h>
 
 BinpickingEmulator::BinpickingEmulator(ros::NodeHandle& nh) :
     move_group_(PLANNING_GROUP),
-    //kinematic_(move_group_.getCurrentState()),
-    kinematic_(robot_model_loader::RobotModelLoader("robot_description").getModel())
+    //robotModelLoader("robot_description"),
+    kinematic_(robot_model_loader::RobotModelLoader("robot_description").getModel()),
+    evaluator()
     {
 
     //robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
@@ -97,6 +99,9 @@ bool BinpickingEmulator::moveJ(const JointValues &joint_pose) {
     move_group_.setJointValueTarget(joint_pose);
     bool success = (move_group_.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ROS_INFO_NAMED("tutorial", "Visualizing plan 2 (joint space goal) %s", success ? "" : "FAILED");
+    inputTrajectory trajectory;
+    trajectory.jointPositions = my_plan.trajectory_.joint_trajectory;
+    trajectory.pose = calculateTrajectoryFK(trajectory.jointPositions);
     return success;
 }
 
@@ -105,6 +110,18 @@ bool BinpickingEmulator::moveJ(const geometry_msgs::Pose &pose) {
     JointValues joint_values;
     kinematic_.getIK(pose, joint_values);
    return moveJ(joint_values);
+}
+
+std::vector <geometry_msgs::Pose> BinpickingEmulator::calculateTrajectoryFK(const trajectory_msgs::JointTrajectory &joint_trajectory) {
+    std::vector <geometry_msgs::Pose> poses;
+
+    for (auto &point : joint_trajectory.points) {
+        const Eigen::Affine3d &end_effector_state = kinematic_.getFK(point.positions);
+        geometry_msgs::Pose pose;
+        tf::poseEigenToMsg(end_effector_state, pose);
+        poses.push_back(pose);
+    }
+    return poses;
 }
 
 int main(int argc, char** argv)
@@ -130,6 +147,7 @@ int main(int argc, char** argv)
         planner.moveJ(srv.response.poses[0].grasp_pose);
         if (!ros::ok()) break;
     }
+
 
   ros::shutdown();
   return 0;

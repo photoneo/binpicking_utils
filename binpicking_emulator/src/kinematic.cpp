@@ -39,3 +39,8 @@ bool Kinematic::isIKSolutionValid(const planning_scene::PlanningScenePtr plannin
 moveit::core::GroupStateValidityCallbackFn *Kinematic::getStateValidityCallback(){
     return &groupStateValidityCallbackFn;
 }
+
+Eigen::Affine3d Kinematic::getFK(const std::vector<double> &joint_values) {
+    kinematic_state->setJointGroupPositions("manipulator", joint_values);
+    return kinematic_state->getGlobalLinkTransform("tool0");
+}

@@ -17,6 +17,7 @@ class Kinematic{
 public:
     Kinematic(robot_model::RobotModelPtr robot_model, planning_scene::PlanningScenePtr planning_scene = nullptr);
     bool getIK(const geometry_msgs::Pose &pose, std::vector<double> &joint_values);
+    Eigen::Affine3d getFK(const std::vector<double> &joint_values);
     moveit::core::GroupStateValidityCallbackFn* getStateValidityCallback();
 
 private:

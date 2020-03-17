@@ -11,6 +11,7 @@ find_package(catkin REQUIRED
     moveit_ros_planning_interface
     tf
     stomp_param_changer
+        eigen_conversions
     )
 
 catkin_package(
@@ -25,7 +26,8 @@ add_executable(
   binpicking_emulator
   src/binpicking_emulator.cpp
   src/path_length_test.cpp
-src/kinematic.cpp)
+  src/kinematic.cpp
+  src/trajectoryEvaluator.cpp)
 
 add_dependencies(binpicking_emulator ${catkin_EXPORTED_TARGETS})
 

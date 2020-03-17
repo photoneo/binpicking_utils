@@ -40,6 +40,8 @@ limitations under the License.
 
 #include "binpicking_emulator/kinematic.h"
 
+#include <binpicking_emulator/trajectoryEvaluator.h>
+
 #define THREADS_COUNT 6
 class BinpickingEmulator
 {
@@ -67,7 +69,10 @@ private:
     static constexpr char* PLANNING_GROUP = "manipulator";
     moveit::planning_interface::MoveGroupInterface move_group_;
     Kinematic kinematic_;
+    TrajectoryEvaluator evaluator;
+    std::vector<eveluatorResult> results;
 
+    std::vector <geometry_msgs::Pose> calculateTrajectoryFK(const trajectory_msgs::JointTrajectory &joint_trajectory);
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H
