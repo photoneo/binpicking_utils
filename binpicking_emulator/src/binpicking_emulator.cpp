@@ -48,11 +48,12 @@
 
 #include <eigen_conversions/eigen_msg.h>
 
+#include <binpicking_emulator/trajectoryEvaluator.h>
+
+
 BinpickingEmulator::BinpickingEmulator(ros::NodeHandle& nh) :
     move_group_(PLANNING_GROUP),
-    //robotModelLoader("robot_description"),
-    kinematic_(robot_model_loader::RobotModelLoader("robot_description").getModel()),
-    evaluator()
+    kinematic_(robot_model_loader::RobotModelLoader("robot_description").getModel())
     {
 
     //robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
@@ -90,7 +91,7 @@ void BinpickingEmulator::setStartState(const JointValues &start_state) {
     move_group_.setStartState(*current_state);
 }
 
-bool BinpickingEmulator::moveJ(const JointValues &joint_pose) {
+BinpickingEmulator::Result BinpickingEmulator::moveJ(const JointValues &joint_pose, trajectory_msgs::JointTrajectory &trajectory) {
     // Now, we call the planner to compute the plan and visualize it.
     // Note that we are just planning, not asking move_group
     // to actually move the robot.
@@ -99,17 +100,21 @@ bool BinpickingEmulator::moveJ(const JointValues &joint_pose) {
     move_group_.setJointValueTarget(joint_pose);
     bool success = (move_group_.plan(my_plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     ROS_INFO_NAMED("tutorial", "Visualizing plan 2 (joint space goal) %s", success ? "" : "FAILED");
-    inputTrajectory trajectory;
-    trajectory.jointPositions = my_plan.trajectory_.joint_trajectory;
-    trajectory.pose = calculateTrajectoryFK(trajectory.jointPositions);
-    return success;
+
+    if (success) {
+        trajectory = my_plan.trajectory_.joint_trajectory;
+        return Result::OK;
+    } else {
+        return Result::PATH_PLAN_FAIL;
+    }
 }
 
-bool BinpickingEmulator::moveJ(const geometry_msgs::Pose &pose) {
-  //  move_group_.setPoseTarget(pose);
+BinpickingEmulator::Result BinpickingEmulator::moveJ(const geometry_msgs::Pose &pose, trajectory_msgs::JointTrajectory &trajectory) {
     JointValues joint_values;
-    kinematic_.getIK(pose, joint_values);
-   return moveJ(joint_values);
+    if (!kinematic_.getIK(pose, joint_values)) {
+        return Result::IK_FAIL;
+    }
+    return moveJ(joint_values, trajectory);
 }
 
 std::vector <geometry_msgs::Pose> BinpickingEmulator::calculateTrajectoryFK(const trajectory_msgs::JointTrajectory &joint_trajectory) {
@@ -143,8 +148,17 @@ int main(int argc, char** argv)
     bin_pose_msgs::bin_pose_vector srv;
     bin_pose_client_.call(srv);
 
+    TrajectoryEvaluator evaluator;
+    std::vector<eveluatorResult> results;
+
     for (auto &target : srv.response.poses) {
-        planner.moveJ(srv.response.poses[0].grasp_pose);
+        inputTrajectory trajectory;
+
+        auto planningResult = planner.moveJ(target.grasp_pose, trajectory.jointPositions);
+        if (planningResult == BinpickingEmulator::Result::OK) {
+            trajectory.pose = planner.calculateTrajectoryFK(trajectory.jointPositions);
+           results.push_back(evaluator.calcQuality(trajectory, TrajectoryEvaluator::AllCriteria));
+        }
         if (!ros::ok()) break;
     }
 

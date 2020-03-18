@@ -40,8 +40,6 @@ limitations under the License.
 
 #include "binpicking_emulator/kinematic.h"
 
-#include <binpicking_emulator/trajectoryEvaluator.h>
-
 #define THREADS_COUNT 6
 class BinpickingEmulator
 {
@@ -49,11 +47,18 @@ public:
 
   typedef std::vector<double> JointValues;
 
+  enum Result {
+      OK,
+      IK_FAIL,
+      PATH_PLAN_FAIL
+  };
+
   BinpickingEmulator(ros::NodeHandle& nh);
   ~BinpickingEmulator();
   void setStartState(const JointValues &start_state);
-   bool moveJ(const geometry_msgs::Pose &pose);
-   bool moveJ(const JointValues &joint_pose);
+  Result moveJ(const geometry_msgs::Pose &pose, trajectory_msgs::JointTrajectory &trajectory);
+   Result moveJ(const JointValues &joint_pose, trajectory_msgs::JointTrajectory &trajectory);
+   std::vector <geometry_msgs::Pose> calculateTrajectoryFK(const trajectory_msgs::JointTrajectory &joint_trajectory);
 
 /*
   void binPickingThreadsLoops();
@@ -69,10 +74,8 @@ private:
     static constexpr char* PLANNING_GROUP = "manipulator";
     moveit::planning_interface::MoveGroupInterface move_group_;
     Kinematic kinematic_;
-    TrajectoryEvaluator evaluator;
-    std::vector<eveluatorResult> results;
 
-    std::vector <geometry_msgs::Pose> calculateTrajectoryFK(const trajectory_msgs::JointTrajectory &joint_trajectory);
+
 };  // class
 
 #endif  // BINPICKING_EMULATOR_H
