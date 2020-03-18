@@ -4,6 +4,12 @@
 
 #include "binpicking_emulator/trajectoryEvaluator.h"
 
+std::ostream& operator<<(std::ostream& os, const eveluatorResult &e)
+{
+    os << e.jointDistance << ", " << e.cartesianDistance << ", " << e.jointJerk << ", " << e.cartesianJerk << ", " <<
+       e.jointMaxJerk << ", " << e.cartesianMaxJerk << ", " << e.controlPseudoCost << ", " << e.PoseOrientationDistance << "\n";
+    return os;
+}
 
 eveluatorResult TrajectoryEvaluator::calcQuality(inputTrajectory &trajectory, criterion method) {
 

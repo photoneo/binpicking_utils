@@ -55,17 +55,6 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle& nh) :
     move_group_(PLANNING_GROUP),
     kinematic_(robot_model_loader::RobotModelLoader("robot_description").getModel())
     {
-
-    //robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
-    //robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
-    // We will use the :planning_scene_interface:`PlanningSceneInterface`
-    // class to add and remove collision objects in our "virtual world" scene
-   // moveit::planning_interface::PlanningSceneInterface planning_scene_interface;
-
-    // Raw pointers are frequently used to refer to the planning group for improved performance.
- //   const robot_state::JointModelGroup* joint_model_group =
-//            move_group.getCurrentState()->getJointModelGroup(PLANNING_GROUP);
-
     // Getting Basic Information
     // ^^^^^^^^^^^^^^^^^^^^^^^^^
     //
@@ -150,6 +139,7 @@ int main(int argc, char** argv)
 
     TrajectoryEvaluator evaluator;
     std::vector<eveluatorResult> results;
+    std::ofstream outstream("/home/michaldobis/catkin_ws/moveit_test/test.txt");
 
     for (auto &target : srv.response.poses) {
         inputTrajectory trajectory;
@@ -158,6 +148,7 @@ int main(int argc, char** argv)
         if (planningResult == BinpickingEmulator::Result::OK) {
             trajectory.pose = planner.calculateTrajectoryFK(trajectory.jointPositions);
            results.push_back(evaluator.calcQuality(trajectory, TrajectoryEvaluator::AllCriteria));
+            outstream << results.back();
         }
         if (!ros::ok()) break;
     }

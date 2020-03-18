@@ -9,6 +9,7 @@
 #include <moveit_msgs/MoveGroupResult.h>
 #include <moveit_msgs/RobotTrajectory.h>
 
+
 struct inputTrajectory {
     trajectory_msgs::JointTrajectory jointPositions;
     std::vector <geometry_msgs::Pose> pose;
@@ -26,6 +27,9 @@ struct eveluatorResult {
     double controlPseudoCost;  //pseudo control cost of whole trajectory(only joint movements makes sense)
     double PoseOrientationDistance; //how much the tip orientation change from ideal movement allong trajectory
 };
+
+std::ostream& operator<<(std::ostream& os, const eveluatorResult &e);
+
 
 class TrajectoryEvaluator {
 
@@ -63,6 +67,7 @@ public:
 
 
     bool isTrajectoryBetterThan(inputTrajectory firstTraj, inputTrajectory secondTraj, criterion method);
+
 
 private:
     std::vector<double> pseudoControlCostValue;
