@@ -253,12 +253,12 @@ bool BinPoseEmulator::parseConfig(std::string filepath)
     auto n_of_steps_pitch = config_file["n_of_steps_pitch"].as<float>();
     auto n_of_steps_yaw = config_file["n_of_steps_yaw"].as<float>();
 
-    config_.step_x = config_.bin_size_x / (n_of_steps_x * 0.999);
-    config_.step_y = config_.bin_size_y / (n_of_steps_y * 0.999);
-    config_.step_z = config_.bin_size_z / (n_of_steps_z * 0.999);
-    config_.step_roll = config_.roll_range / (n_of_steps_roll * 0.999);
-    config_.step_pitch = config_.pitch_range / (n_of_steps_pitch * 0.999);
-    config_.step_yaw = config_.yaw_range / (n_of_steps_yaw * 0.999);
+    config_.step_x = (config_.bin_size_x / (n_of_steps_x - 1) * 0.99);
+    config_.step_y = (config_.bin_size_y / (n_of_steps_y - 1) * 0.99);
+    config_.step_z = (config_.bin_size_z / (n_of_steps_z - 1) * 0.99);
+    config_.step_roll = (config_.roll_range / (n_of_steps_roll - 1) * 0.99);
+    config_.step_pitch = (config_.pitch_range / (n_of_steps_pitch - 1) * 0.99);
+    config_.step_yaw = (config_.yaw_range / n_of_steps_yaw) * 1.01;
 #endif
   }
   catch (YAML::ParserException& e)

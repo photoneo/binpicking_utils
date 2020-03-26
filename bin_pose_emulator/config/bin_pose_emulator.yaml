@@ -1,3 +1,4 @@
+# Bin configuration
 bin_center_x: 0.425
 bin_center_y: -0.03
 bin_center_z: 0.26
@@ -10,25 +11,28 @@ x_rotation: 0.0
 y_rotation: 0.0
 z_rotation: 0.0
 
+# Gripping point invariances
 roll_default: 0
 pitch_default: 3.14
 yaw_default: 0
 
 roll_range: 0.7
 pitch_range: 0.7
-yaw_range: 6.2
+yaw_range: 1.57
 
+# Approach/deapproach distance
 approach_distance: 0.10
 deapproach_height: 0.10
 
-# Use only integer values
+# Distribution of points in the bin (Use only integer values)
 n_of_steps_x: 5
 n_of_steps_y: 5
-n_of_steps_z: 5
+n_of_steps_z: 3
 
-n_of_steps_roll: 2
-n_of_steps_pitch: 2
-n_of_steps_yaw: 6
+n_of_steps_roll: 4
+n_of_steps_pitch: 4
+n_of_steps_yaw: 3
 
+# Start/end pose
 start_pose: [1.6, 0.04, -1.39, 0.0, -1.46, 0.00]
 end_pose: [1.6, 0.04, -1.39, 0.0, -1.46, 0.00]

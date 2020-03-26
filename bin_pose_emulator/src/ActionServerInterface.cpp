@@ -33,13 +33,13 @@ emulator_(emulator)
 void ActionServerInterface::actionServerCallback(const pho_localization::ScanAndLocateGoalConstPtr& goal) {
 
     static int object_id = 0;
-    std::cout << "Goal id " << goal->id << std::endl;
-    publishEmptyCloud(goal->id);
+    //std::cout << "Goal id " << goal->id << std::endl;
+    //publishEmptyCloud(goal->id);
 
     sleep(2);
     pho_localization::ScanAndLocateFeedback feedback;
     for (int i = 0; i < 10; i++) {
-        feedback.object.header.seq = goal->id;
+        feedback.object.header.seq = 0;
         feedback.object.header.frame_id = "base_link";
         feedback.object.id = object_id;
         feedback.object.occluded = false;
