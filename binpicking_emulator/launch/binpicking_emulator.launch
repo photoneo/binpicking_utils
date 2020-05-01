@@ -1,8 +1,11 @@
 <launch>
   <!-- Bin pose emulator -->
-  <node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/>
+  <!--node pkg="bin_pose_emulator" name="bin_pose_emulator" type="bin_pose_emulator" output="screen"/-->
 
   <!-- Bin picking emulator -->
   <node pkg="binpicking_emulator" name="binpicking" type="binpicking_emulator" output="screen"/>
 
+<rosparam command="load" file="$(find binpicking_emulator)/config/virtual_robot_config.yaml"/>
+  
+  <include file="$(find pho_global_moveit_config)/launch/demo.launch" />
 </launch>

@@ -43,12 +43,11 @@
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/CollisionObject.h>
 
-#include <bin_pose_msgs/bin_pose_vector.h>
 #include <binpicking_emulator/binpicking_emulator.h>
 
 #include <eigen_conversions/eigen_msg.h>
 
-#include <binpicking_emulator/trajectoryEvaluator.h>
+
 
 
 BinpickingEmulator::BinpickingEmulator(ros::NodeHandle& nh) :
@@ -116,44 +115,4 @@ std::vector <geometry_msgs::Pose> BinpickingEmulator::calculateTrajectoryFK(cons
         poses.push_back(pose);
     }
     return poses;
-}
-
-int main(int argc, char** argv)
-{
-  ros::init(argc, argv, "move_group_interface_tutorial");
-  ros::NodeHandle node_handle;
-  ros::AsyncSpinner spinner(1);
-  spinner.start();
-
-  BinpickingEmulator planner(node_handle);
-
-  const BinpickingEmulator::JointValues start = {0, 0, 0, 0, 0, 0};
-  const BinpickingEmulator::JointValues end = {1.5, 0, 0, 0, 0, 0};
-  planner.setStartState(start);
-
-    // Configure bin pose client
-    ros::ServiceClient bin_pose_client_ = node_handle.serviceClient<bin_pose_msgs::bin_pose_vector>("bin_pose");
-    bin_pose_client_.waitForExistence();
-    bin_pose_msgs::bin_pose_vector srv;
-    bin_pose_client_.call(srv);
-
-    TrajectoryEvaluator evaluator;
-    std::vector<eveluatorResult> results;
-    std::ofstream outstream("/home/michaldobis/catkin_ws/moveit_test/test.txt");
-
-    for (auto &target : srv.response.poses) {
-        inputTrajectory trajectory;
-
-        auto planningResult = planner.moveJ(target.grasp_pose, trajectory.jointPositions);
-        if (planningResult == BinpickingEmulator::Result::OK) {
-            trajectory.pose = planner.calculateTrajectoryFK(trajectory.jointPositions);
-           results.push_back(evaluator.calcQuality(trajectory, TrajectoryEvaluator::AllCriteria));
-            outstream << results.back();
-        }
-        if (!ros::ok()) break;
-    }
-
-
-  ros::shutdown();
-  return 0;
 }

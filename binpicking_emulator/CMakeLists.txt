@@ -12,11 +12,12 @@ find_package(catkin REQUIRED
     tf
     stomp_param_changer
         eigen_conversions
+	pho_logger
     )
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp bin_pose_msgs moveit_core)
+  CATKIN_DEPENDS roscpp bin_pose_msgs moveit_core pho_logger)
 
 include_directories(
   ${catkin_INCLUDE_DIRS}
@@ -27,7 +28,8 @@ add_executable(
   src/binpicking_emulator.cpp
   src/path_length_test.cpp
   src/kinematic.cpp
-  src/trajectoryEvaluator.cpp)
+  src/trajectoryEvaluator.cpp
+  src/binpicking_emulator_node.cpp)
 
 add_dependencies(binpicking_emulator ${catkin_EXPORTED_TARGETS})
 
