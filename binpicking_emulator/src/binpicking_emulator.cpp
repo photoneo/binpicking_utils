@@ -68,6 +68,8 @@ BinpickingEmulator::BinpickingEmulator(ros::NodeHandle& nh) :
     std::copy(move_group_.getJointModelGroupNames().begin(), move_group_.getJointModelGroupNames().end(),
               std::ostream_iterator<std::string>(std::cout, ", "));
 
+move_group_.setPlanningTime(10000);
+
 }
 
 BinpickingEmulator::~BinpickingEmulator(){

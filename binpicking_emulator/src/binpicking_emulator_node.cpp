@@ -55,11 +55,18 @@ class Test {
    }
 
     void run(int attempts) {
-   
+    std::ofstream outfile("/home/michaldobis/catkin_ws/datasets/time.txt");
+
+	double total_time = 0;   
 	for (int it =0; it < attempts; it++) {
 		trajectory_msgs::JointTrajectory trajectory;
+		auto start_time = ros::Time::now();
 		auto planningResult = planner_.moveJ(end_, trajectory);
-        	ROS_INFO("Iteration %d/%d", it, attempts);
+		double duration = (ros::Time::now() - start_time).toSec();		
+		total_time += duration;
+		outfile << std::to_string(duration) << "\n";
+		double average_time = total_time/(it+1);
+        	ROS_INFO("Iteration %d/%d take %f sec. Average time is %f", it, attempts, duration, average_time);
 		if (planningResult == BinpickingEmulator::Result::OK) {
 		 	logger_.createNewOperation();
 			logger_.addTrajectory(trajectory.points, it, "CNT");
