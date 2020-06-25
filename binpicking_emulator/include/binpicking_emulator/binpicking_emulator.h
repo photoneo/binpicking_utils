@@ -56,6 +56,7 @@ public:
   BinpickingEmulator(ros::NodeHandle& nh);
   ~BinpickingEmulator();
   void setStartState(const JointValues &start_state);
+  void setConstrains();
   Result moveJ(const geometry_msgs::Pose &pose, trajectory_msgs::JointTrajectory &trajectory);
    Result moveJ(const JointValues &joint_pose, trajectory_msgs::JointTrajectory &trajectory);
    std::vector <geometry_msgs::Pose> calculateTrajectoryFK(const trajectory_msgs::JointTrajectory &joint_trajectory);

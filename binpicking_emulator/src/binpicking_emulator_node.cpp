@@ -42,9 +42,8 @@
 class Test {
   public:
     Test(ros::NodeHandle& nh) : logger_(), planner_(nh) {
-    	    std::string path;
-	    nh.getParam("/virtual_robot/log_path", path);
-	    logger_.setPath(path);
+	    nh.getParam("/virtual_robot/log_path", path_);
+	    logger_.setPath(path_);
 	    logger_.setBufferSize(100);
     }  
 
@@ -52,12 +51,15 @@ class Test {
 	    start_ = start; 
 	    end_ = end;
  	    planner_.setStartState(start);
-   }
+     //   planner_.setConstrains();
+
+    }
 
     void run(int attempts) {
-    std::ofstream outfile("/home/michaldobis/catkin_ws/datasets/time.txt");
+    std::ofstream outfile(path_ + "time.txt");
 
-	double total_time = 0;   
+	double total_time = 0; 
+	int num_of_fails = 0;  
 	for (int it =0; it < attempts; it++) {
 		trajectory_msgs::JointTrajectory trajectory;
 		auto start_time = ros::Time::now();
@@ -66,11 +68,15 @@ class Test {
 		total_time += duration;
 		outfile << std::to_string(duration) << "\n";
 		double average_time = total_time/(it+1);
-        	ROS_INFO("Iteration %d/%d take %f sec. Average time is %f", it, attempts, duration, average_time);
+        	ROS_INFO("Iteration %d/%d take %f sec. Average time is %f", it+1, attempts, duration, average_time);
+		int num_of_success = it - num_of_fails + 1;
+        	ROS_INFO("Number of fails %d and succes rate %f %", num_of_fails, (((num_of_success)/(it+1))*100));
 		if (planningResult == BinpickingEmulator::Result::OK) {
 		 	logger_.createNewOperation();
-			logger_.addTrajectory(trajectory.points, it, "CNT");
+			logger_.addTrajectory(trajectory.points, it - num_of_fails, "CNT");
 			logger_.saveLog();
+		} else {
+			num_of_fails++;
 		}
 		if (!ros::ok()) break;
 	    }
@@ -99,6 +105,7 @@ class Test {
 BinpickingEmulator planner_;
 BinpickingEmulator::JointValues start_;
 BinpickingEmulator::JointValues end_;
+std::string path_;
 
 };
 

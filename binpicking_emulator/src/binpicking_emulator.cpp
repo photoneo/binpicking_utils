@@ -81,6 +81,51 @@ void BinpickingEmulator::setStartState(const JointValues &start_state) {
     move_group_.setStartState(*current_state);
 }
 
+void BinpickingEmulator::setConstrains() {
+    robot_state::RobotStatePtr current_state = move_group_.getCurrentState();
+    const Eigen::Affine3d &end_effector_state = current_state->getGlobalLinkTransform("tool1");
+
+    geometry_msgs::Pose pose;
+    pose.position.x = end_effector_state.translation()[0];
+    pose.position.y = end_effector_state.translation()[1];
+    pose.position.z = end_effector_state.translation()[2];
+
+    auto rotation_matrix = end_effector_state.rotation();
+    // convert rotation matrix to tf matrix
+    tf::Matrix3x3 tf3d;
+    tf3d.setValue(static_cast<double>(rotation_matrix(0, 0)), static_cast<double>(rotation_matrix(0, 1)),
+                  static_cast<double>(rotation_matrix(0, 2)),
+                  static_cast<double>(rotation_matrix(1, 0)), static_cast<double>(rotation_matrix(1, 1)),
+                  static_cast<double>(rotation_matrix(1, 2)),
+                  static_cast<double>(rotation_matrix(2, 0)), static_cast<double>(rotation_matrix(2, 1)),
+                  static_cast<double>(rotation_matrix(2, 2)));
+
+    // Convert to quternion
+    tf::Quaternion quaternion;
+    tf3d.getRotation(quaternion);
+
+    moveit_msgs::OrientationConstraint ocm;
+//    ocm.orientation.x = quaternion.x();
+//    ocm.orientation.y = quaternion.y();
+//    ocm.orientation.z = quaternion.z();
+//    ocm.orientation.w = quaternion.w();
+    ocm.orientation.x = 0.001005;
+    ocm.orientation.y = 0.984702;
+    ocm.orientation.z = 0.00078;
+    ocm.orientation.w = 0.174239;
+
+    ocm.link_name = "tool1";
+    ocm.header.frame_id = "base_link";
+  //  ocm.orientation = pose.orientation;
+    ocm.absolute_x_axis_tolerance = 0.1;
+    ocm.absolute_y_axis_tolerance = 0.1;
+    ocm.absolute_z_axis_tolerance = 0.1;
+    ocm.weight = 1.0;
+    moveit_msgs::Constraints test_constraints;
+    test_constraints.orientation_constraints.push_back(ocm);
+    move_group_.setPathConstraints(test_constraints);
+}
+
 BinpickingEmulator::Result BinpickingEmulator::moveJ(const JointValues &joint_pose, trajectory_msgs::JointTrajectory &trajectory) {
     // Now, we call the planner to compute the plan and visualize it.
     // Note that we are just planning, not asking move_group
